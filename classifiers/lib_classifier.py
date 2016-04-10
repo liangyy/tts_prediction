@@ -116,6 +116,7 @@ class Feature_Generation_Functions_Lib(object):
 
 		return re
 
+	#new function here
 
 class Set_Param_For_Classifier(object):
 	def svm_param(self, classifier_object, param_list):
