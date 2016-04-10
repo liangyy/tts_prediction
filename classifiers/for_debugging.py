@@ -54,10 +54,10 @@ my_test = sys.argv[2] # test set
 (raw_data, labels) = data_read(my_in) # read training set from file
 
 feature_gen = lib_classifier.Feature_Generator() # create feature generator
-feature_gen.add_function('gc_content', 2) # define first feature generation method (here is trivil -- GC content)
-feature_gen.add_function('gc_content', 5) # define another feature generation method (here is trivil -- GC content)
+feature_gen.add_function('gc_content', 5) # define first feature generation method (here is trivil -- GC content)
+feature_gen.add_function('motif_score', 'meme_probMatrix.txt') # define another feature generation method (here is trivil -- GC content)
 
-my_svm = lib_classifier.My_Classifier(feature_gen, 'logistic', [10,'l1']) # create a classifier 
+my_svm = lib_classifier.My_Classifier(feature_gen, 'svm', [10,1,'rbf']) # create a classifier 
 									# 1: feature generator defined above ; 2: classifier type ; 3. param for classifier
 									# now we only have 'svm' and 'logistic' 
 my_svm.set_up_param() # set param for classifer (sorry, now this is not automatically, so we need to run this line)
