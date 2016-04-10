@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import SparsePCA
 import matplotlib.pyplot as plt
 import matplotlib
+import re
+
 class My_Classifier:
 
 	def __init__(self, feature_generator, name, param):
@@ -116,6 +118,67 @@ class Feature_Generation_Functions_Lib(object):
 
 		return re
 
+	def motif_score(self, seq, param):
+		meme_filename = param
+		def pssm(meme_filename):
+			alength = 0
+			width = 0
+			probabilityMatrix = []
+			with open(meme_filename, 'r') as memeF:
+    				content = memeF.readlines()
+				for line in content:
+					probabilityMatrix.append(re.findall(r'\S+', line))
+			width = len(probabilityMatrix)
+			alength = len(probabilityMatrix[0])
+			for i in range(0,width):
+				for j in range(0,alength):
+					probabilityMatrix[i][j] = float(probabilityMatrix[i][j])
+				#print probabilityMatrix[i]
+			return probabilityMatrix
+		def scanSeq(sequence, probabilityMatrix):
+			width = len(probabilityMatrix)
+			#for DNA the first column is A, the second is C, the third is G and the last is T
+			#sequence = ""
+			#with open(sequence_filename, 'r') as seqF:
+    		#		content = seqF.readlines()
+			#	for line in content:
+			#		sequence = sequence + line.strip()
+			#	sequence = list(sequence)
+			#print sequence
+
+
+			#maxScore = -float("inf")
+			#maxWindow = []
+			#maxPosition = []
+			scores = []
+			for position in range(0, len(sequence)-width+1):
+				window = ""
+				score = 1.0
+				for index in range(0, width):
+					window = window + sequence[position+index]
+					nuc = -1
+					if sequence[position+index] == "A":
+						nuc = 0
+					if sequence[position+index] == "C":
+						nuc = 1
+					if sequence[position+index] == "G":
+						nuc = 2
+					if sequence[position+index] == "T":
+						nuc = 3
+					score = score * probabilityMatrix[index][nuc]
+				# if score >= maxScore:
+				# 	if score > maxScore:
+				# 		maxWindow = []
+				# 		maxPosition = []
+				# 	maxScore = score
+				# 	maxWindow.append(window)
+				# 	maxPosition.append(position)
+				#print position+1, "  ", window, "  ", score
+				scores.append(score)
+			return scores
+		probabilityMatrix = pssm(meme_filename)
+		scores = scanSeq(seq, probabilityMatrix)
+		return scores
 	#new function here
 
 class Set_Param_For_Classifier(object):
