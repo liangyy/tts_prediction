@@ -20,6 +20,8 @@ from sklearn.decomposition import SparsePCA
 import matplotlib.pyplot as plt
 import matplotlib
 import re
+import math
+import random
 
 class My_Classifier:
 
@@ -43,7 +45,20 @@ class My_Classifier:
 
 	def convert_data_to_feature(self, raw_data):
 		design_matrix = []
+		seq_len = len(raw_data[0])
 		for seq in raw_data:
+			if len(seq) == 0:
+				continue
+			delta = seq_len - len(seq)
+			if delta != 0:
+				#print('warning: sequences have different length')
+				#print(seq)
+				if delta > 0:
+					print(seq)
+					print('cannot fix it, exiting')
+					sys.exit()
+				else:
+					seq = seq[:delta]
 			seq_feature = self.feature_generator.gen_feature_from_seq(seq)
 			design_matrix.append(seq_feature)
 		design_matrix = StandardScaler().fit_transform(design_matrix)
@@ -119,7 +134,8 @@ class Feature_Generation_Functions_Lib(object):
 		return re
 
 	def motif_score(self, seq, param):
-		meme_filename = param
+		meme_filename = param[0]
+		mode = param[1]
 		def pssm(meme_filename):
 			alength = 0
 			width = 0
@@ -135,21 +151,11 @@ class Feature_Generation_Functions_Lib(object):
 					probabilityMatrix[i][j] = float(probabilityMatrix[i][j])
 				#print probabilityMatrix[i]
 			return probabilityMatrix
-		def scanSeq(sequence, probabilityMatrix):
+		def scanSeq(sequence, probabilityMatrix, mode):
 			width = len(probabilityMatrix)
-			#for DNA the first column is A, the second is C, the third is G and the last is T
-			#sequence = ""
-			#with open(sequence_filename, 'r') as seqF:
-    		#		content = seqF.readlines()
-			#	for line in content:
-			#		sequence = sequence + line.strip()
-			#	sequence = list(sequence)
-			#print sequence
-
-
-			#maxScore = -float("inf")
-			#maxWindow = []
-			#maxPosition = []
+			maxScore = -float("inf")
+			maxWindow = []
+			maxPosition = []
 			scores = []
 			for position in range(0, len(sequence)-width+1):
 				window = ""
@@ -166,20 +172,111 @@ class Feature_Generation_Functions_Lib(object):
 					if sequence[position+index] == "T":
 						nuc = 3
 					score = score * probabilityMatrix[index][nuc]
-				# if score >= maxScore:
-				# 	if score > maxScore:
-				# 		maxWindow = []
-				# 		maxPosition = []
-				# 	maxScore = score
-				# 	maxWindow.append(window)
-				# 	maxPosition.append(position)
+				if score >= maxScore:
+					if score > maxScore:
+						maxWindow = []
+						maxPosition = []
+					maxScore = score
+					maxWindow.append(window)
+					maxPosition.append(position)
 				#print position+1, "  ", window, "  ", score
 				scores.append(score)
-			return scores
+			if mode == '-b':
+				return [maxScore]
+			else:
+				return scores
 		probabilityMatrix = pssm(meme_filename)
-		scores = scanSeq(seq, probabilityMatrix)
+		scores = scanSeq(seq, probabilityMatrix, mode)
 		return scores
+
+	def rna_struct(self, seq, param):
+		def score(B1, B2, i, j):
+			if abs(j-i) <= 4:
+				return 0
+			if (B1 == "C" and B2 == "G"):
+				return 1
+			if (B1 == "G" and B2 == "C"):
+				return 1
+			if (B1 == "A" and B2 == "T"):
+				return 1
+			if (B1 == "T" and B2 == "A"):
+				return 1
+			
+
+			return 0
+		def fold(sequence):
+			length = len(sequence)
+			matrix = state = [[[] for _ in range(length)] for _ in range(length)]
+			# Initialization
+			matrix[0][0] = 0
+			for i in range(1, length):
+				matrix[i][i] = 0
+				matrix[i][i-1] = 0
+			# Recursion
+			for x in range(1, length):
+				for i in range(length):
+					j = i + x
+					if (i<length and j<length):
+						maxOfTheThreeCells = max(matrix[i+1][j],matrix[i][j-1], matrix[i+1][j-1]+score(sequence[i], sequence[j], i, j))
+						if j > i+1:
+							bifurcation = []
+							for k in range(i+1, j):
+								bifurcation.append(matrix[i][k]+matrix[k+1][j])
+							matrix[i][j] = max(maxOfTheThreeCells, max(bifurcation))
+						else:
+							matrix[i][j] = maxOfTheThreeCells
+			# Traceback
+			stack = []
+			i = 0
+			j = length -1
+			stack.append([i,j])
+			dot=[]
+			basepairs=[]
+			for i in xrange(length):
+				dot.append(0)
+			while not stack==[]:
+				pair = stack.pop()
+				i = pair[0]
+				j = pair[1]
+				if (i >= j):
+					continue
+				elif matrix[i+1][j] == matrix[i][j]:
+					stack.append([i+1, j])
+				elif matrix[i][j-1] == matrix[i][j]:
+					stack.append([i, j-1])
+				elif (matrix[i+1][j-1] + score(sequence[i], sequence[j], i, j)) == matrix[i][j]:
+					stack.append([i+1, j-1])
+					basepairs.append((i,j))	
+				else:
+					if (j > i+1):
+						for k in range(i+1, j):
+							if matrix[i][k]+matrix[k+1][j] == matrix[i][j]:
+								stack.append([i, k])
+								stack.append([k+1, j])
+								break
+			for i in basepairs:
+				k=i[0]
+				j=i[1]
+				dot[k]=-1
+				dot[j]=1
+			return dot
+		width = param
+		mid = len(seq) / 2
+		up_seq = seq[mid - width : mid]
+		down_seq = seq[mid : mid + width]
+		all_seq = seq[mid - width : mid + width]
+		up_re = fold(up_seq)
+		down_re = fold(down_seq)
+		all_re = fold(all_seq)
+		# Reference:
+		# http://www.tutorialspoint.com/python/list_max.htm
+		return up_re + down_re + all_re
+
 	#new function here
+
+	
+
+
 
 class Set_Param_For_Classifier(object):
 	def svm_param(self, classifier_object, param_list):
