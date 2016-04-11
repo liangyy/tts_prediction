@@ -22,6 +22,8 @@ import matplotlib
 import re
 import math
 import random
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 
 class My_Classifier:
 
@@ -29,8 +31,11 @@ class My_Classifier:
 		self.feature_generator = feature_generator
 		self.classifier_name = name
 		self.classifier_param = param
-		self.dict_param = {'svm': 'svm_param', 'logistic': 'log_param'}
-		self.dict_classifier = {'svm' : 'svm.SVC()', 'logistic' : 'LogisticRegression()'}
+		self.dict_param = {'svm': 'svm_param', 'logistic': 'log_param',\
+							'pip_svm' : 'pip_svm_param'}
+		self.dict_classifier = {'svm' : 'svm.SVC()', 'logistic' : 'LogisticRegression()',\
+								'pip_svm' : 'Pipeline([(\'feature_selection\', LinearSVC(penalty=\"l1\"\
+								, dual=False, tol=1e-3)),(\'classification\', LinearSVC())])'}
 		self.Classifier = eval(self.dict_classifier[name]) # further set up parameters can be done manually or via functions
 		
 	def set_up_param(self):
@@ -189,6 +194,12 @@ class Feature_Generation_Functions_Lib(object):
 		scores = scanSeq(seq, probabilityMatrix, mode)
 		return scores
 
+## DETAILS of RNA structure predictor
+## Suppos here is a sequence (we assume that the very middle one is the TTS) 
+## ---------------UP-------MID-------DOWN------------
+## rna_struct will return secondary structure of UP------MID, MID------DOWN, and UP----------------DOWN
+## where ( is labeled as -1, . is labeled as 0 and ) is labeled as +1
+## example: (((.....)))  ==> [-1,-1,-1,0,0,0,0,0,1,1,1]
 	def rna_struct(self, seq, param):
 		def score(B1, B2, i, j):
 			if abs(j-i) <= 4:
@@ -272,6 +283,7 @@ class Feature_Generation_Functions_Lib(object):
 		# http://www.tutorialspoint.com/python/list_max.htm
 		return up_re + down_re + all_re
 
+
 	#new function here
 
 	
@@ -294,7 +306,11 @@ class Set_Param_For_Classifier(object):
 	def log_param(self, classifier_object, param_list):
 		classifier_object.C = param_list[0]
 		classifier_object.penalty = param_list[1]
+
+	def pip_svm_param(self, classifier_object, param_list):
+		return
 	## def other_classifiers(self, classifier_object, param_list):
+
 
 class Kernels(object): #customized kernel
 	def test_kernel(self, X, Y):
