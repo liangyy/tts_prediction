@@ -24,6 +24,10 @@ import math
 import random
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
+from sklearn.neighbors.nearest_centroid import NearestCentroid
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 class My_Classifier:
 
@@ -32,10 +36,17 @@ class My_Classifier:
 		self.classifier_name = name
 		self.classifier_param = param
 		self.dict_param = {'svm': 'svm_param', 'logistic': 'log_param',\
-							'pip_svm' : 'pip_svm_param'}
+							'pip_svm' : 'pip_svm_param', \
+							'centroid' : 'centroid_param', \
+							'tree' : 'tree_param', \
+							'boost' : 'boost_param'}
 		self.dict_classifier = {'svm' : 'svm.SVC()', 'logistic' : 'LogisticRegression()',\
 								'pip_svm' : 'Pipeline([(\'feature_selection\', LinearSVC(penalty=\"l1\"\
-								, dual=False, tol=1e-3)),(\'classification\', LinearSVC())])'}
+								, dual=False, tol=1e-3)),(\'classification\', LinearSVC())])'\
+								, 'centroid' : 'NearestCentroid()', \
+								'tree' : 'RandomForestClassifier()', \
+								'boost' : 'AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), \
+algorithm=\"SAMME\", n_estimators=200)'}
 		self.Classifier = eval(self.dict_classifier[name]) # further set up parameters can be done manually or via functions
 		
 	def set_up_param(self):
@@ -271,7 +282,8 @@ class Feature_Generation_Functions_Lib(object):
 				dot[k]=-1
 				dot[j]=1
 			return dot
-		width = param
+		width = param[0]
+		mode = param[1]
 		mid = len(seq) / 2
 		up_seq = seq[mid - width : mid]
 		down_seq = seq[mid : mid + width]
@@ -279,9 +291,12 @@ class Feature_Generation_Functions_Lib(object):
 		up_re = fold(up_seq)
 		down_re = fold(down_seq)
 		all_re = fold(all_seq)
+		if mode == '-up':
+			return up_re
 		# Reference:
 		# http://www.tutorialspoint.com/python/list_max.htm
-		return up_re + down_re + all_re
+		else:
+			return up_re + down_re + all_re
 
 
 	#new function here
@@ -306,8 +321,14 @@ class Set_Param_For_Classifier(object):
 	def log_param(self, classifier_object, param_list):
 		classifier_object.C = param_list[0]
 		classifier_object.penalty = param_list[1]
-
 	def pip_svm_param(self, classifier_object, param_list):
+		return
+	def centroid_param(self, classifier_object, param_list):
+		return
+	def tree_param(self, classifier_object, param_list):
+		classifier_object.n_estimators = param_list[0]
+		return
+	def boost_param(self, classifier_object, param_list):
 		return
 	## def other_classifiers(self, classifier_object, param_list):
 
