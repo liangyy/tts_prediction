@@ -17,7 +17,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 from sklearn.decomposition import SparsePCA
-import matplotlib.pyplot as plt
 import matplotlib
 import re
 import math
@@ -56,7 +55,10 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		method(self.Classifier, self.classifier_param)
 	
 	def train(self, raw_data, labels): # raw_data is list of seq
-		design_matrix = self.convert_data_to_feature(raw_data)
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		self.classifier_param.append(feature_name)
+		self.classifier_param.append(feature_index)
+		self.set_up_param()
 		self.Classifier.fit(design_matrix, labels)
 
 	def convert_data_to_feature(self, raw_data):
@@ -77,16 +79,17 @@ algorithm=\"SAMME\", n_estimators=200)'}
 					seq = seq[:delta]
 			seq_feature = self.feature_generator.gen_feature_from_seq(seq)
 			design_matrix.append(seq_feature)
-		design_matrix = StandardScaler().fit_transform(design_matrix)
-		return np.array(design_matrix)
+		#design_matrix = StandardScaler().fit_transform(design_matrix)
+		[feature_index, feature_name] = self.feature_generator.feature_info(raw_data[0])
+		return [np.array(design_matrix), feature_index, feature_name]
 
 	def predict(self, raw_data):
-		design_matrix = self.convert_data_to_feature(raw_data)
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 		re = list(self.Classifier.predict(design_matrix))
 		return re
 
 	def visualize(self, raw_data, labels):
-		design_matrix = self.convert_data_to_feature(raw_data)
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 		colors = ['red','green']
 		pca_fit = SparsePCA()
 		tmp = pca_fit.fit_transform(design_matrix)
@@ -98,6 +101,8 @@ class Feature_Generator:
 
 	def __init__(self):
 		self.list_of_feature_generation_functions = []
+		self.list_of_feature_name = []
+		self.list_of_feature_index = []
 
 	def gen_feature_from_seq(self, seq):
 		features = []
@@ -110,7 +115,21 @@ class Feature_Generator:
 	def add_function(self, func_name, func_param):
 		func_cls = Call_Feature_Generation_Function(func_name, func_param)
 		self.list_of_feature_generation_functions.append(func_cls)
+		self.list_of_feature_name.append(func_name)
 
+	def feature_info(self, seq):
+		feature_index = []
+		feature_name = self.list_of_feature_name
+		funcs = self.list_of_feature_generation_functions
+		index = 0
+		for func in funcs:
+			feature = func.run_gen_feature_func(seq)
+			to = len(feature)
+			feature_index.append([index, index + to])
+			index = index + to
+
+		self.list_of_feature_index = feature_index
+		return [feature_index, feature_name]
 
 class Call_Feature_Generation_Function:
 
@@ -216,15 +235,17 @@ class Feature_Generation_Functions_Lib(object):
 			if abs(j-i) <= 4:
 				return 0
 			if (B1 == "C" and B2 == "G"):
-				return 1
+				return 3
 			if (B1 == "G" and B2 == "C"):
-				return 1
+				return 3
 			if (B1 == "A" and B2 == "T"):
-				return 1
+				return 2
 			if (B1 == "T" and B2 == "A"):
-				return 1
-			
-
+				return 2
+			if (B1 == "T" and B2 == "G"):
+				return 2
+			if (B1 == "G" and B2 == "T"):
+				return 2
 			return 0
 		def fold(sequence):
 			length = len(sequence)
@@ -314,7 +335,7 @@ class Set_Param_For_Classifier(object):
 			if param_list[2] in kernel_dict:
 				classifier_object.kernel = param_list[2]
 			else:
-				krn = Kernels()
+				krn = Kernels(param_list[4], param_list[5], param_list[3])
 				method = getattr(krn, param_list[2])
 				classifier_object.kernel = method
 		#do some set up
@@ -333,9 +354,94 @@ class Set_Param_For_Classifier(object):
 	## def other_classifiers(self, classifier_object, param_list):
 
 
-class Kernels(object): #customized kernel
+class Kernels: #customized kernel
+
+	def __init__(self, entry_name, entry_list, param):
+		self.group_index = entry_list
+		self.group_name = entry_name
+		self.param = param
+
 	def test_kernel(self, X, Y):
 		return np.dot(X, Y.T)
+	def rbf_linear_hammington(self, X, Y):
+		entry_name = self.group_name
+		entry_list = self.group_index
+
+		n = np.shape(X)
+		n = n[0]
+		gc_x = np.array([]).reshape(n, 0)
+		gc_y = np.array([]).reshape(n, 0)
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'gc_content':
+				gc_x = np.hstack([gc_x, X[: , entry_list[f][0] : entry_list[f][1]]])
+				gc_y = np.hstack([gc_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
+
+		motif_x = np.array([]).reshape(n, 0)
+		motif_y = np.array([]).reshape(n, 0)
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'motif_score':
+				motif_x = np.hstack([motif_x, X[: , entry_list[f][0] : entry_list[f][1]]])
+				motif_y = np.hstack([motif_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
+
+		rna_x = np.array([]).reshape(n, 0)
+		rna_y = np.array([]).reshape(n, 0)
+		
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'rna_struct':
+				rna_x = np.hstack([rna_x, X[: , entry_list[f][0] : entry_list[f][1]]])
+				rna_y = np.hstack([rna_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
+
+
+		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y)
+		motif = self.linear(motif_x, motif_y)
+		#motif = np.apply_along_axis(self.rbf, 0, motif_x.T, motif_y)
+		rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y)
+		#print(motif)
+		rna = rna.astype(float)
+		#print(gc.dtype, motif.dtype, rna.dtype)
+		
+		re = np.add(gc , motif, rna)
+		#re = np.add(re, motif1 * 100) 
+
+
+
+		f, axarr = plt.subplots(2, 2)
+		axarr[0, 0].pcolor(gc)
+		axarr[0, 0].set_title('gc')
+		axarr[0, 1].pcolor(motif)
+		axarr[0, 1].set_title('motif')
+		axarr[1, 0].pcolor(rna)
+		axarr[1, 0].set_title('rna')
+		axarr[1, 1].pcolor(re)
+		axarr[1, 1].set_title('re')
+		plt.show()
+		
+
+
+
+		return re
+	def linear(self, x, y):
+		return np.dot(x, y.T)
+	def hamming(self, x, y):
+		n = np.shape(y)
+		n = n[1]
+		re = np.apply_along_axis(self._hamming, 1, y, x)
+		return re
+	def _hamming(self, x, y):
+		return sum(x == y)
+	def rbf(self, x, y):
+		n = np.shape(y)
+		n = n[1]
+		re = np.apply_along_axis(self._rbf, 1, y, x)
+		return re
+	def _rbf(self, x, y):
+		delta = x - y
+		re = sum(np.multiply(delta, delta))
+		re = math.exp(- re / 2 / self.param)
+		return re
+
+
+
 
 
 
