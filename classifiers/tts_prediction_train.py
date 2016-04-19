@@ -8,7 +8,7 @@ from lib_classifier import load_instance
 
 
 if sys.argv[1] == '--help':
-	print('python for_debugging.py [training_set] [test_set] [save_or_others] [save_name_if_save]')
+	print('python tts_prediction_train.py [training_set] [test_set] [save_or_others] [save_name_if_save]')
 	sys.exit()
 
 my_in = sys.argv[1] # training set
