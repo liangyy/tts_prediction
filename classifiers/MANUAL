@@ -1,0 +1,26 @@
+## Authors: Yanyu Liang, Zhishen Cao, Raghunandan Avula
+## Computational Biology Department
+## Carnegie Mellon University 
+## 5000 Forbes Ave, Pittsburgh, PA 15213
+## yanyul OR zhishenc OR ravula@andrew.cmu.edu 
+
+DESCRIPTIONS
+This folder contains a software, tts_prediction, that predicts transcription termination sites in Maize (and it is also applicable for other species by using customized motifs and re-trained classifier).
+
+tts_prediction computes features from a fixed size of genome scanning window, where there are three feature categories, (di)nucleotide frequency, motif occurence, and transcript local secondary structure and feeds these features into support vector machine with optimized kernel for Maize (if you want to apply it for other species, see EXTENSION for more details) 
+
+DENPENDENCIES
+To use tts_prediction, you need Python packages: sklearn, numpy, matplotlib and Bio
+
+INSTALL
+> ./setup.sh # it install all dependencies and add tts_prediction into $PATH
+> ./test.sh  # test if setup runs correctly  
+
+USAGE
+> ./tts_prediction Maize_classifer [your_Maize_genome.fa] > [output] 
+
+EXTENSION
+coming soon
+
+
+
