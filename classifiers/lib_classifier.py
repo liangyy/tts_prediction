@@ -27,6 +27,7 @@ from sklearn.neighbors.nearest_centroid import NearestCentroid
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
+import pickle
 
 class My_Classifier:
 
@@ -47,12 +48,14 @@ class My_Classifier:
 								'boost' : 'AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), \
 algorithm=\"SAMME\", n_estimators=200)'}
 		self.Classifier = eval(self.dict_classifier[name]) # further set up parameters can be done manually or via functions
-		
+		self.window_size = 'unknown'
+		self.kernel_mem = ''
+
 	def set_up_param(self):
 		my_cls = Set_Param_For_Classifier()
 		
 		method = getattr(my_cls, self.dict_param[self.classifier_name])
-		method(self.Classifier, self.classifier_param)
+		self.kernel_mem = method(self.Classifier, self.classifier_param)
 	
 	def train(self, raw_data, labels): # raw_data is list of seq
 		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
@@ -64,6 +67,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 	def convert_data_to_feature(self, raw_data):
 		design_matrix = []
 		seq_len = len(raw_data[0])
+		self.window_size = seq_len
 		for seq in raw_data:
 			if len(seq) == 0:
 				continue
@@ -85,7 +89,11 @@ algorithm=\"SAMME\", n_estimators=200)'}
 
 	def predict(self, raw_data):
 		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		#print(len(design_matrix[0]))
+		#print(design_matrix)
 		re = list(self.Classifier.predict(design_matrix))
+		#print(self.Classifier.predict(design_matrix))
+		#print(len(re))
 		return re
 
 	def visualize(self, raw_data, labels):
@@ -95,7 +103,13 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		tmp = pca_fit.fit_transform(design_matrix)
 		plt.scatter(tmp[:, 1], tmp[:, 2], c=labels, cmap=matplotlib.colors.ListedColormap(colors))
 		plt.show()
-
+	
+	def __getstate__(self):
+		odict = self.__dict__.copy() # copy the dict since we change it
+		del odict['feature_generator']              # remove filehandle entry
+		del odict['Classifier']
+		return odict
+	#def __setstate__(self): self.__dict__.update(d)
 
 class Feature_Generator:
 
@@ -334,23 +348,26 @@ class Set_Param_For_Classifier(object):
 		if len(param_list) > 2:
 			if param_list[2] in kernel_dict:
 				classifier_object.kernel = param_list[2]
+				return ''
 			else:
 				krn = Kernels(param_list[4], param_list[5], param_list[3])
 				method = getattr(krn, param_list[2])
 				classifier_object.kernel = method
+				return param_list[2]
 		#do some set up
 	def log_param(self, classifier_object, param_list):
 		classifier_object.C = param_list[0]
 		classifier_object.penalty = param_list[1]
+		return ''
 	def pip_svm_param(self, classifier_object, param_list):
-		return
+		return ''
 	def centroid_param(self, classifier_object, param_list):
-		return
+		return ''
 	def tree_param(self, classifier_object, param_list):
 		classifier_object.n_estimators = param_list[0]
-		return
+		return ''
 	def boost_param(self, classifier_object, param_list):
-		return
+		return ''
 	## def other_classifiers(self, classifier_object, param_list):
 
 
@@ -364,62 +381,67 @@ class Kernels: #customized kernel
 	def test_kernel(self, X, Y):
 		return np.dot(X, Y.T)
 	def rbf_linear_hammington(self, X, Y):
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y] = self.return_feature_by_type(X, Y)
+		#print('gc_x = ' + str(gc_x.shape))
+		#print('gc_y = ' + str(gc_y.shape))
+		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
+		#print('gc = ' + str(gc.shape))
+		motif = self.linear(motif_x, motif_y)	
+		#print('motif = ' + str(motif.shape))
+		rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y).T
+		#print('rna = ' + str(rna.shape))
+		rna = rna.astype(float)
+
+		re = np.multiply(gc , motif)
+		re = np.multiply(re, rna)
+		
+
+		# f, axarr = plt.subplots(2, 2)
+		# axarr[0, 0].pcolor(gc)
+		# axarr[0, 0].set_title('gc')
+		# axarr[0, 1].pcolor(motif)
+		# axarr[0, 1].set_title('motif')
+		# axarr[1, 0].pcolor(rna)
+		# axarr[1, 0].set_title('rna')
+		# axarr[1, 1].pcolor(re)
+		# axarr[1, 1].set_title('re')
+		# plt.show()
+		#print('re = ' + str(re.shape))
+		return re
+	def rbf_linear_structural_motif(self, X, Y):
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y] = self.return_feature_by_type(X, Y)
+
+	def return_feature_by_type(self, X, Y):
 		entry_name = self.group_name
 		entry_list = self.group_index
 
-		n = np.shape(X)
-		n = n[0]
-		gc_x = np.array([]).reshape(n, 0)
-		gc_y = np.array([]).reshape(n, 0)
+		nx = np.shape(X)
+		nx = nx[0]
+		ny = np.shape(Y)
+		ny = ny[0]
+		gc_x = np.array([]).reshape(nx, 0)
+		gc_y = np.array([]).reshape(ny, 0)
 		for f in range(len(entry_name)):
 			if entry_name[f] == 'gc_content':
 				gc_x = np.hstack([gc_x, X[: , entry_list[f][0] : entry_list[f][1]]])
 				gc_y = np.hstack([gc_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
 
-		motif_x = np.array([]).reshape(n, 0)
-		motif_y = np.array([]).reshape(n, 0)
-		for f in range(len(entry_name)):
-			if entry_name[f] == 'motif_score':
-				motif_x = np.hstack([motif_x, X[: , entry_list[f][0] : entry_list[f][1]]])
-				motif_y = np.hstack([motif_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
-
-		rna_x = np.array([]).reshape(n, 0)
-		rna_y = np.array([]).reshape(n, 0)
-		
+		rna_x = np.array([]).reshape(nx, 0)
+		rna_y = np.array([]).reshape(ny, 0)
 		for f in range(len(entry_name)):
 			if entry_name[f] == 'rna_struct':
 				rna_x = np.hstack([rna_x, X[: , entry_list[f][0] : entry_list[f][1]]])
 				rna_y = np.hstack([rna_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
 
+		motif_x = np.array([]).reshape(nx, 0)
+		motif_y = np.array([]).reshape(ny, 0)
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'motif_score':
+				motif_x = np.hstack([motif_x, X[: , entry_list[f][0] : entry_list[f][1]]])
+				motif_y = np.hstack([motif_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
+		return [gc_x, gc_y, motif_x, motif_y, rna_x, rna_y]
 
-		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y)
-		motif = self.linear(motif_x, motif_y)
-		#motif = np.apply_along_axis(self.rbf, 0, motif_x.T, motif_y)
-		rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y)
-		#print(motif)
-		rna = rna.astype(float)
-		#print(gc.dtype, motif.dtype, rna.dtype)
 		
-		re = np.add(gc , motif, rna)
-		#re = np.add(re, motif1 * 100) 
-
-
-
-		f, axarr = plt.subplots(2, 2)
-		axarr[0, 0].pcolor(gc)
-		axarr[0, 0].set_title('gc')
-		axarr[0, 1].pcolor(motif)
-		axarr[0, 1].set_title('motif')
-		axarr[1, 0].pcolor(rna)
-		axarr[1, 0].set_title('rna')
-		axarr[1, 1].pcolor(re)
-		axarr[1, 1].set_title('re')
-		plt.show()
-		
-
-
-
-		return re
 	def linear(self, x, y):
 		return np.dot(x, y.T)
 	def hamming(self, x, y):
@@ -433,14 +455,55 @@ class Kernels: #customized kernel
 		n = np.shape(y)
 		n = n[1]
 		re = np.apply_along_axis(self._rbf, 1, y, x)
-		return re
+		return re.T
 	def _rbf(self, x, y):
 		delta = x - y
 		re = sum(np.multiply(delta, delta))
 		re = math.exp(- re / 2 / self.param)
 		return re
 
+def data_read(mf):
+	raw_data = []
+	labels = []
+	f = file(mf).read().splitlines()
+	for line in f:
+		line = line.split(' ')
+		labels.append(line[0])
+		raw_data.append(line[1])
+	return (raw_data, labels)
 
+def accuracy(re, labels):
+	accuracy_list = [ [0, 0] for i in range(2) ]
+	for i in range(len(re)):
+		a = int(re[i]) - 1
+		b = int(labels[i]) - 1
+		accuracy_list[a][b] += 1
+	print('    1   2   true')
+	print('1 '),
+	print(accuracy_list[0])
+	print('2 '),
+	print(accuracy_list[1])
+	print('predict')
+
+def save_instance(save_name, obj):
+	pickle.dump(obj, open(save_name + '.cls', 'wb'))
+	pickle.dump(obj.feature_generator, open(save_name + '.features', 'wb'))
+	if obj.kernel_mem != '':
+		obj.Classifier.kernel = 'rbf'
+	pickle.dump(obj.Classifier, open(save_name + '.classifier', 'wb'))
+
+def load_instance(save_name):
+	f = open(save_name + '.cls', 'rb')
+	my_classifier = pickle.load(f)
+	f = open(save_name + '.features', 'rb')
+	feature_generator = pickle.load(f)
+	my_classifier.feature_generator = feature_generator
+	f = open(save_name + '.classifier', 'rb')
+	classifier = pickle.load(f)
+	my_classifier.Classifier = classifier
+	if my_classifier.kernel_mem != '':
+		my_classifier.set_up_param()
+	return my_classifier
 
 
 
