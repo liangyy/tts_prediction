@@ -104,6 +104,20 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		plt.scatter(tmp[:, 1], tmp[:, 2], c=labels, cmap=matplotlib.colors.ListedColormap(colors))
 		plt.show()
 	
+
+	def feature_to_csv(self, raw_data, label, output_name):
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		#print(label)
+		label_num = []
+		for i in label:
+			print(i)
+			label_num.append(int(i))
+		label_num = np.matrix(label_num)
+		out = np.hstack([design_matrix, label_num.T])
+		np.savetxt(output_name, out, delimiter=",")
+		print feature_index
+		print feature_name
+
 	def __getstate__(self):
 		odict = self.__dict__.copy() # copy the dict since we change it
 		del odict['feature_generator']              # remove filehandle entry
