@@ -33,7 +33,11 @@ my_classifier = lib_classifier.My_Classifier(feature_gen, 'tree', [100,1,'rbf_li
 #my_classifier.set_up_param() # set param for classifier (sorry, now this is not automatically, so we need to run this line)
 
 my_classifier.train(raw_data, labels) # training
+
+my_classifier.feature_to_csv(raw_data, labels, 'train.csv')
+
 (raw_data_test, labels_test) = data_read(my_test) # read test set from file
+my_classifier.feature_to_csv(raw_data, labels_test, 'test.csv')
 re = my_classifier.predict(raw_data_test) # predict
 #print(raw_data_test)
 accuracy(re, labels_test) # generate a report for prediction
