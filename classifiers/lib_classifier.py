@@ -31,8 +31,9 @@ import pickle
 
 class My_Classifier:
 
-	def __init__(self, feature_generator, name, param):
+	def __init__(self, feature_generator, name, param, path):
 		self.feature_generator = feature_generator
+		feature_generator.path = path
 		self.classifier_name = name
 		self.classifier_param = param
 		self.dict_param = {'svm': 'svm_param', 'logistic': 'log_param',\
@@ -50,6 +51,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		self.Classifier = eval(self.dict_classifier[name]) # further set up parameters can be done manually or via functions
 		self.window_size = 'unknown'
 		self.kernel_mem = ''
+		self.path = path
 
 	def set_up_param(self):
 		my_cls = Set_Param_For_Classifier()
@@ -68,6 +70,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		design_matrix = []
 		seq_len = len(raw_data[0])
 		self.window_size = seq_len
+		self.feature_generator.path = self.path
 		for seq in raw_data:
 			if len(seq) == 0:
 				continue
@@ -131,17 +134,18 @@ class Feature_Generator:
 		self.list_of_feature_generation_functions = []
 		self.list_of_feature_name = []
 		self.list_of_feature_index = []
+		self.path = ''
 
 	def gen_feature_from_seq(self, seq):
 		features = []
 		funcs = self.list_of_feature_generation_functions
 		for func in funcs:
-			feature = func.run_gen_feature_func(seq)
+			feature = func.run_gen_feature_func(seq, self.path)
 			features += feature
 		return features
 
 	def add_function(self, func_name, func_param):
-		func_cls = Call_Feature_Generation_Function(func_name, func_param)
+		func_cls = Call_Feature_Generation_Function(func_name, func_param, self.path)
 		self.list_of_feature_generation_functions.append(func_cls)
 		self.list_of_feature_name.append(func_name)
 
@@ -151,7 +155,7 @@ class Feature_Generator:
 		funcs = self.list_of_feature_generation_functions
 		index = 0
 		for func in funcs:
-			feature = func.run_gen_feature_func(seq)
+			feature = func.run_gen_feature_func(seq, self.path)
 			to = len(feature)
 			feature_index.append([index, index + to])
 			index = index + to
@@ -161,19 +165,24 @@ class Feature_Generator:
 
 class Call_Feature_Generation_Function:
 
-	def __init__(self, name, param):
+	def __init__(self, name, param, path):
 		self.func_name = name
 		self.func_param = param
+		self.path = path
 
-	def run_gen_feature_func(self, seq):
+	def run_gen_feature_func(self, seq, path):
 		param = self.func_param
+		self.path = path
 		func_name = self.func_name
-		my_cls = Feature_Generation_Functions_Lib()
+		my_cls = Feature_Generation_Functions_Lib(self.path)
 		method = getattr(my_cls, func_name)
 		return method(seq, param)
 
 
 class Feature_Generation_Functions_Lib(object):
+	def __init__(self, path):
+		self.path = path
+
 	def gc_content(self, seq, param):
 		tmp = list(seq)
 		length = len(tmp)
@@ -197,7 +206,8 @@ class Feature_Generation_Functions_Lib(object):
 		return re
 
 	def motif_score(self, seq, param):
-		meme_filename = param[0]
+		meme_filename = self.path + '/' + param[0]
+		#print(self.path, param[0], 'sda')
 		mode = param[1]
 		def pssm(meme_filename):
 			alength = 0
@@ -384,6 +394,7 @@ class Feature_Generation_Functions_Lib(object):
 
 	def motif_struct_pair(self, seq, param):
 		def motif_length(meme_filename):
+			meme_filename = self.path + '/' + meme_filename
 			alength = 0
 			width = 0
 			probabilityMatrix = []
@@ -393,8 +404,9 @@ class Feature_Generation_Functions_Lib(object):
 					probabilityMatrix.append(re.findall(r'\S+', line))
 			width = len(probabilityMatrix)
 			return width
-
+		#print('path is ', self.path, param[0])
 		motif = param[0]
+		#print(motif)
 		motif_len = motif_length(motif)
 		mo_up = motif_len / 2
 		mo_do = motif_len - mo_up
@@ -640,7 +652,7 @@ def save_instance(save_name, obj):
 		obj.Classifier.kernel = 'rbf'
 	pickle.dump(obj.Classifier, open(save_name + '.classifier', 'wb'))
 
-def load_instance(save_name):
+def load_instance(save_name, path):
 	f = open(save_name + '.cls', 'rb')
 	my_classifier = pickle.load(f)
 	f = open(save_name + '.features', 'rb')
@@ -651,6 +663,8 @@ def load_instance(save_name):
 	my_classifier.Classifier = classifier
 	if my_classifier.kernel_mem != '':
 		my_classifier.set_up_param()
+	path = re.sub('/$', '', path)
+	my_classifier.path = path
 	return my_classifier
 
 

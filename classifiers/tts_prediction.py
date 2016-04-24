@@ -7,12 +7,14 @@ import sys
 from lib_classifier import load_instance
 
 if sys.argv[1] == '--help':
-	print('./tts_prediction [classifier] [genome]')
+	print('./tts_prediction [classifier] [genome] [motif_path]')
+	print('motif path tells where your motif files locate')
 	sys.exit()
 
 classifier = sys.argv[1]
 genome = sys.argv[2]
-classifier = load_instance(classifier)
+path = sys.argv[3]
+classifier = load_instance(classifier, path)
 
 window_size = classifier.window_size
 print 'window_size = ', window_size
