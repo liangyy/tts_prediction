@@ -8,12 +8,16 @@ from lib_classifier import load_instance
 
 
 if sys.argv[1] == '--help':
-	print('python tts_prediction_train.py [training_set] [test_set] [save_or_others] [save_name_if_save]')
+	print('python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]')
+	print('if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as')
+	print('classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier')
 	sys.exit()
 
 my_in = sys.argv[1] # training set
 my_test = sys.argv[2] # test set
-mode = sys.argv[3] # if save classifier 
+mode = sys.argv[4] # if save classifier 
+
+path = sys.argv[3]
 
 (raw_data, labels) = data_read(my_in) # read training set from file
 #print(len(raw_data))
@@ -25,9 +29,18 @@ feature_gen.add_function('motif_score', ['motif2.motif', '-b'])
 feature_gen.add_function('motif_score', ['motif3.motif','-b']) 
 feature_gen.add_function('motif_score', ['motif4.motif', '-b']) 
 feature_gen.add_function('rna_struct', [14, '-up']) # usage of RNA secondary structure feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
+feature_gen.add_function('motif_struct_pair', ['meme_probMatrix.txt', 20]) # usage of motif score feature. 
+feature_gen.add_function('motif_struct_pair', ['motif1.motif', 20])
+feature_gen.add_function('motif_struct_pair', ['motif2.motif', 20])
+feature_gen.add_function('motif_struct_pair', ['motif4.motif', 20])
+feature_gen.add_function('motif_struct_pair', ['motif3.motif', 20])
 
 
-my_classifier = lib_classifier.My_Classifier(feature_gen, 'tree', [100,1,'rbf_linear_hammington', 100]) # create a classifier 
+
+
+
+
+my_classifier = lib_classifier.My_Classifier(feature_gen, 'tree', [100,1,'rbf_linear_structural_motif_sim', 100], path) # create a classifier 
 									# 1: feature generator defined above ; 2: classifier type ; 3. param for classifier
 									# now we only have 'svm' and 'logistic' 
 #my_classifier.set_up_param() # set param for classifier (sorry, now this is not automatically, so we need to run this line)
@@ -44,7 +57,7 @@ accuracy(re, labels_test) # generate a report for prediction
 #my_classifier.visualize(raw_data, labels) # visualize data as scatter polt (PCA is applied)
 
 if mode == 'save':
-	save_name = sys.argv[4]
+	save_name = sys.argv[5]
 	save_instance(save_name, my_classifier)
 
 # new_cls = load_instance(save_name)

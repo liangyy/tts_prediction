@@ -31,8 +31,9 @@ import pickle
 
 class My_Classifier:
 
-	def __init__(self, feature_generator, name, param):
+	def __init__(self, feature_generator, name, param, path):
 		self.feature_generator = feature_generator
+		feature_generator.path = path
 		self.classifier_name = name
 		self.classifier_param = param
 		self.dict_param = {'svm': 'svm_param', 'logistic': 'log_param',\
@@ -50,6 +51,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		self.Classifier = eval(self.dict_classifier[name]) # further set up parameters can be done manually or via functions
 		self.window_size = 'unknown'
 		self.kernel_mem = ''
+		self.path = path
 
 	def set_up_param(self):
 		my_cls = Set_Param_For_Classifier()
@@ -68,6 +70,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		design_matrix = []
 		seq_len = len(raw_data[0])
 		self.window_size = seq_len
+		self.feature_generator.path = self.path
 		for seq in raw_data:
 			if len(seq) == 0:
 				continue
@@ -110,7 +113,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		#print(label)
 		label_num = []
 		for i in label:
-			print(i)
+			#print(i)
 			label_num.append(int(i))
 		label_num = np.matrix(label_num)
 		out = np.hstack([design_matrix, label_num.T])
@@ -131,17 +134,18 @@ class Feature_Generator:
 		self.list_of_feature_generation_functions = []
 		self.list_of_feature_name = []
 		self.list_of_feature_index = []
+		self.path = ''
 
 	def gen_feature_from_seq(self, seq):
 		features = []
 		funcs = self.list_of_feature_generation_functions
 		for func in funcs:
-			feature = func.run_gen_feature_func(seq)
+			feature = func.run_gen_feature_func(seq, self.path)
 			features += feature
 		return features
 
 	def add_function(self, func_name, func_param):
-		func_cls = Call_Feature_Generation_Function(func_name, func_param)
+		func_cls = Call_Feature_Generation_Function(func_name, func_param, self.path)
 		self.list_of_feature_generation_functions.append(func_cls)
 		self.list_of_feature_name.append(func_name)
 
@@ -151,7 +155,7 @@ class Feature_Generator:
 		funcs = self.list_of_feature_generation_functions
 		index = 0
 		for func in funcs:
-			feature = func.run_gen_feature_func(seq)
+			feature = func.run_gen_feature_func(seq, self.path)
 			to = len(feature)
 			feature_index.append([index, index + to])
 			index = index + to
@@ -161,19 +165,24 @@ class Feature_Generator:
 
 class Call_Feature_Generation_Function:
 
-	def __init__(self, name, param):
+	def __init__(self, name, param, path):
 		self.func_name = name
 		self.func_param = param
+		self.path = path
 
-	def run_gen_feature_func(self, seq):
+	def run_gen_feature_func(self, seq, path):
 		param = self.func_param
+		self.path = path
 		func_name = self.func_name
-		my_cls = Feature_Generation_Functions_Lib()
+		my_cls = Feature_Generation_Functions_Lib(self.path)
 		method = getattr(my_cls, func_name)
 		return method(seq, param)
 
 
 class Feature_Generation_Functions_Lib(object):
+	def __init__(self, path):
+		self.path = path
+
 	def gc_content(self, seq, param):
 		tmp = list(seq)
 		length = len(tmp)
@@ -197,7 +206,8 @@ class Feature_Generation_Functions_Lib(object):
 		return re
 
 	def motif_score(self, seq, param):
-		meme_filename = param[0]
+		meme_filename = self.path + '/' + param[0]
+		#print(self.path, param[0], 'sda')
 		mode = param[1]
 		def pssm(meme_filename):
 			alength = 0
@@ -331,8 +341,11 @@ class Feature_Generation_Functions_Lib(object):
 				dot[k]=-1
 				dot[j]=1
 			return dot
+
 		width = param[0]
 		mode = param[1]
+		if mode == 'local':
+			return fold(seq)
 		mid = len(seq) / 2
 		up_seq = seq[mid - width : mid]
 		down_seq = seq[mid : mid + width]
@@ -347,7 +360,66 @@ class Feature_Generation_Functions_Lib(object):
 		else:
 			return up_re + down_re + all_re
 
+	def motif_struct(self, seq, param):
+		def motif_length(meme_filename):
+			alength = 0
+			width = 0
+			probabilityMatrix = []
+			with open(meme_filename, 'r') as memeF:
+    				content = memeF.readlines()
+				for line in content:
+					probabilityMatrix.append(re.findall(r'\S+', line))
+			width = len(probabilityMatrix)
+			return width
 
+		motif = param[0]
+		motif_len = motif_length(motif)
+		mo_up = motif_len / 2
+		mo_do = motif_len - mo_up
+		width = param[1]
+		mid = len(seq) / 2
+		up_seq = seq[mid - width : mid]
+		down_seq = seq[mid : mid + width]
+		up_seq_mo = seq[mid - width - mo_up: mid + mo_do - 1]
+		down_seq_mo = seq[mid - mo_up : mid + width + mo_do - 1]
+		up_st = np.array(self.rna_struct(up_seq, [-1, 'local']))
+		down_st = np.array(self.rna_struct(down_seq, [-1, 'local']))
+		up_sc = np.array(self.motif_score(up_seq_mo, [motif, '']))
+		down_sc = np.array(self.motif_score(down_seq_mo, [motif, '']))
+		nonloop_sum_up = np.dot(abs(up_st), up_sc.T)
+		nonloop_sum_down = np.dot(abs(down_st), down_sc.T)
+		loop_sum_up = np.dot(up_st == 0, up_sc.T)
+		loop_sum_down = np.dot(down_st == 0, down_sc.T)
+		return [loop_sum_up, nonloop_sum_up, loop_sum_down, nonloop_sum_down]
+
+	def motif_struct_pair(self, seq, param):
+		def motif_length(meme_filename):
+			meme_filename = self.path + '/' + meme_filename
+			alength = 0
+			width = 0
+			probabilityMatrix = []
+			with open(meme_filename, 'r') as memeF:
+    				content = memeF.readlines()
+				for line in content:
+					probabilityMatrix.append(re.findall(r'\S+', line))
+			width = len(probabilityMatrix)
+			return width
+		#print('path is ', self.path, param[0])
+		motif = param[0]
+		#print(motif)
+		motif_len = motif_length(motif)
+		mo_up = motif_len / 2
+		mo_do = motif_len - mo_up
+		width = param[1]
+		mid = len(seq) / 2
+		sub_seq = seq[mid - width : mid + width]
+		sub_seq_mo = seq[mid - width - mo_up: mid + width + mo_do - 1]
+		st = self.rna_struct(sub_seq, [-1, 'local'])
+		sc = self.motif_score(sub_seq_mo, [motif, ''])
+		return st + sc
+
+
+		
 	#new function here
 
 	
@@ -395,7 +467,7 @@ class Kernels: #customized kernel
 	def test_kernel(self, X, Y):
 		return np.dot(X, Y.T)
 	def rbf_linear_hammington(self, X, Y):
-		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y] = self.return_feature_by_type(X, Y)
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_x_st] = self.return_feature_by_type(X, Y)
 		#print('gc_x = ' + str(gc_x.shape))
 		#print('gc_y = ' + str(gc_y.shape))
 		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
@@ -408,23 +480,75 @@ class Kernels: #customized kernel
 
 		re = np.multiply(gc , motif)
 		re = np.multiply(re, rna)
-		
-
-		# f, axarr = plt.subplots(2, 2)
-		# axarr[0, 0].pcolor(gc)
-		# axarr[0, 0].set_title('gc')
-		# axarr[0, 1].pcolor(motif)
-		# axarr[0, 1].set_title('motif')
-		# axarr[1, 0].pcolor(rna)
-		# axarr[1, 0].set_title('rna')
-		# axarr[1, 1].pcolor(re)
-		# axarr[1, 1].set_title('re')
-		# plt.show()
-		#print('re = ' + str(re.shape))
 		return re
-	def rbf_linear_structural_motif(self, X, Y):
-		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y] = self.return_feature_by_type(X, Y)
 
+	def rbf_linear_structural_score(self, X, Y):# this one works poorly
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_x_st] = self.return_feature_by_type(X, Y)
+		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
+		motif = self.linear(motif_x, motif_y)
+		motifstr = np.apply_along_axis(self.hamming, 0, motifstr_x.T, motifstr_y).T
+		#rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y).T
+		#rna = rna.astype(float)
+		print(motifstr)
+		re = np.multiply(gc , motif)
+		#re = np.multiply(re, rna)
+		re = np.multiply(re, motifstr)
+
+		f, axarr = plt.subplots(2, 2)
+		axarr[0, 0].pcolor(gc)
+		axarr[0, 0].set_title('gc')
+		axarr[0, 1].pcolor(motif)
+		axarr[0, 1].set_title('motif')
+		axarr[1, 0].pcolor(motifstr)
+		axarr[1, 0].set_title('motifstr')
+		axarr[1, 1].pcolor(re)
+		axarr[1, 1].set_title('re')
+		plt.show()
+		print('re = ' + str(re.shape))
+		return re
+
+	def rbf_linear_structural_motif_sim(self, X, Y):
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st] = self.return_feature_by_type(X, Y)
+		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
+		motif = self.linear(motif_x, motif_y)
+		motifstr = self.compute_similarity_based_on_motif_and_struct(motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st)
+		rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y).T
+		rna = rna.astype(float)
+		print(motifstr)
+		re = np.multiply(gc , motif)
+		re = np.multiply(re, rna)
+		re = np.add(re, motifstr)
+
+		f, axarr = plt.subplots(2, 2)
+		axarr[0, 0].pcolor(gc)
+		axarr[0, 0].set_title('gc')
+		axarr[0, 1].pcolor(motif)
+		axarr[0, 1].set_title('motif')
+		axarr[1, 0].pcolor(motifstr)
+		axarr[1, 0].set_title('motifstr')
+		axarr[1, 1].pcolor(re)
+		axarr[1, 1].set_title('re')
+		plt.show()
+		print('re = ' + str(re.shape))
+		return re
+	def compute_similarity_based_on_motif_and_struct(self, xsc, ysc, xst, yst):
+		nx = np.shape(xsc)
+		print(nx)
+		nx = nx[0]
+		ny = np.shape(ysc)
+		ny = ny[0]
+		re = np.zeros((nx, ny))
+
+		for i in range(nx):
+			for j in range(ny):
+				tmpxsc = xsc[i, ]
+				tmpysc = ysc[j, ]
+				tmpxst = xst[i, ]
+				tmpyst = yst[j, ]
+				tmp = np.multiply((tmpxst == 0), (0 == tmpyst))
+				#print(tmp)
+				re[i, j] = (np.dot(tmp.T, tmpxsc) + np.dot(tmp.T, tmpysc))
+		return re
 	def return_feature_by_type(self, X, Y):
 		entry_name = self.group_name
 		entry_list = self.group_index
@@ -453,7 +577,29 @@ class Kernels: #customized kernel
 			if entry_name[f] == 'motif_score':
 				motif_x = np.hstack([motif_x, X[: , entry_list[f][0] : entry_list[f][1]]])
 				motif_y = np.hstack([motif_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
-		return [gc_x, gc_y, motif_x, motif_y, rna_x, rna_y]
+
+		motifstr_x = np.array([]).reshape(nx, 0)
+		motifstr_y = np.array([]).reshape(ny, 0)
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'motif_struct':
+				motifstr_x = np.hstack([motifstr_x, X[: , entry_list[f][0] : entry_list[f][1]]])
+				motifstr_y = np.hstack([motifstr_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
+
+		motifstr_x_sc = np.array([]).reshape(nx, 0)
+		motifstr_y_sc = np.array([]).reshape(ny, 0)
+		motifstr_x_st = np.array([]).reshape(ny, 0)
+		motifstr_y_st = np.array([]).reshape(ny, 0)
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'motif_struct_pair':
+				cut = (entry_list[f][1] + entry_list[f][0]) / 2
+				print(entry_list[f][1], cut, entry_list[f][0])
+				motifstr_x_st = np.hstack([motifstr_x_st, X[: , entry_list[f][0] : cut]])
+				motifstr_y_st = np.hstack([motifstr_y_st, Y[: , entry_list[f][0] : cut]])
+				motifstr_x_sc = np.hstack([motifstr_x_sc, X[: , cut : entry_list[f][1]]])
+				motifstr_y_sc = np.hstack([motifstr_y_sc, Y[: , cut : entry_list[f][1]]])
+
+				
+		return [gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st]
 
 		
 	def linear(self, x, y):
@@ -506,7 +652,7 @@ def save_instance(save_name, obj):
 		obj.Classifier.kernel = 'rbf'
 	pickle.dump(obj.Classifier, open(save_name + '.classifier', 'wb'))
 
-def load_instance(save_name):
+def load_instance(save_name, path):
 	f = open(save_name + '.cls', 'rb')
 	my_classifier = pickle.load(f)
 	f = open(save_name + '.features', 'rb')
@@ -517,6 +663,8 @@ def load_instance(save_name):
 	my_classifier.Classifier = classifier
 	if my_classifier.kernel_mem != '':
 		my_classifier.set_up_param()
+	path = re.sub('/$', '', path)
+	my_classifier.path = path
 	return my_classifier
 
 
