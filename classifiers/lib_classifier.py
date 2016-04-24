@@ -28,6 +28,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import pickle
+import fold_energy
 
 class My_Classifier:
 
@@ -259,78 +260,6 @@ class Feature_Generation_Functions_Lib(object):
 ## where ( is labeled as -1, . is labeled as 0 and ) is labeled as +1
 ## example: (((.....)))  ==> [-1,-1,-1,0,0,0,0,0,1,1,1]
 	def rna_struct(self, seq, param):
-		def score(B1, B2, i, j):
-			if abs(j-i) <= 4:
-				return 0
-			if (B1 == "C" and B2 == "G"):
-				return 3
-			if (B1 == "G" and B2 == "C"):
-				return 3
-			if (B1 == "A" and B2 == "T"):
-				return 2
-			if (B1 == "T" and B2 == "A"):
-				return 2
-			if (B1 == "T" and B2 == "G"):
-				return 2
-			if (B1 == "G" and B2 == "T"):
-				return 2
-			return 0
-		def fold(sequence):
-			length = len(sequence)
-			matrix = state = [[[] for _ in range(length)] for _ in range(length)]
-			# Initialization
-			matrix[0][0] = 0
-			for i in range(1, length):
-				matrix[i][i] = 0
-				matrix[i][i-1] = 0
-			# Recursion
-			for x in range(1, length):
-				for i in range(length):
-					j = i + x
-					if (i<length and j<length):
-						maxOfTheThreeCells = max(matrix[i+1][j],matrix[i][j-1], matrix[i+1][j-1]+score(sequence[i], sequence[j], i, j))
-						if j > i+1:
-							bifurcation = []
-							for k in range(i+1, j):
-								bifurcation.append(matrix[i][k]+matrix[k+1][j])
-							matrix[i][j] = max(maxOfTheThreeCells, max(bifurcation))
-						else:
-							matrix[i][j] = maxOfTheThreeCells
-			# Traceback
-			stack = []
-			i = 0
-			j = length -1
-			stack.append([i,j])
-			dot=[]
-			basepairs=[]
-			for i in xrange(length):
-				dot.append(0)
-			while not stack==[]:
-				pair = stack.pop()
-				i = pair[0]
-				j = pair[1]
-				if (i >= j):
-					continue
-				elif matrix[i+1][j] == matrix[i][j]:
-					stack.append([i+1, j])
-				elif matrix[i][j-1] == matrix[i][j]:
-					stack.append([i, j-1])
-				elif (matrix[i+1][j-1] + score(sequence[i], sequence[j], i, j)) == matrix[i][j]:
-					stack.append([i+1, j-1])
-					basepairs.append((i,j))	
-				else:
-					if (j > i+1):
-						for k in range(i+1, j):
-							if matrix[i][k]+matrix[k+1][j] == matrix[i][j]:
-								stack.append([i, k])
-								stack.append([k+1, j])
-								break
-			for i in basepairs:
-				k=i[0]
-				j=i[1]
-				dot[k]=-1
-				dot[j]=1
-			return dot
 		width = param[0]
 		mode = param[1]
 		mid = len(seq) / 2
@@ -348,6 +277,25 @@ class Feature_Generation_Functions_Lib(object):
 			return up_re + down_re + all_re
 
 
+	def struct_energy(self, seq, param):
+		width = param[0]
+		mode = param[1]
+		mid = len(seq) / 2
+		up_seq = seq[mid - width : mid]
+		down_seq = seq[mid : mid + width]
+		all_seq = seq[mid - width : mid + width]
+		up_dot = fold(up_seq)
+		down_dot = fold(down_seq)
+		all_dot = fold(all_seq)
+		up_re = fold_energy.energy(up_dot, up_seq)
+		down_re = fold_energy.energy(down_dot, down_seq)
+		all_re = fold_energy.energy(all_dot, all_seq)
+		if mode == '-up':
+			return [up_re]
+		# Reference:
+		# http://www.tutorialspoint.com/python/list_max.htm
+		else:
+			return [up_re, down_re, all_re]
 	#new function here
 
 	
@@ -519,9 +467,80 @@ def load_instance(save_name):
 		my_classifier.set_up_param()
 	return my_classifier
 
+def fold(sequence):
+	length = len(sequence)
+	matrix = state = [[[] for _ in range(length)] for _ in range(length)]
+	# Initialization
+	matrix[0][0] = 0
+	for i in range(1, length):
+		matrix[i][i] = 0
+		matrix[i][i-1] = 0
+	# Recursion
+	for x in range(1, length):
+		for i in range(length):
+			j = i + x
+			if (i<length and j<length):
+				maxOfTheThreeCells = max(matrix[i+1][j],matrix[i][j-1], matrix[i+1][j-1]+score(sequence[i], sequence[j], i, j))
+				if j > i+1:
+					bifurcation = []
+					for k in range(i+1, j):
+						bifurcation.append(matrix[i][k]+matrix[k+1][j])
+					matrix[i][j] = max(maxOfTheThreeCells, max(bifurcation))
+				else:
+					matrix[i][j] = maxOfTheThreeCells
+	# Traceback
+	stack = []
+	i = 0
+	j = length -1
+	stack.append([i,j])
+	dot=[]
+	basepairs=[]
+	for i in xrange(length):
+		dot.append(0)
+	while not stack==[]:
+		pair = stack.pop()
+		i = pair[0]
+		j = pair[1]
+		if (i >= j):
+			continue
+		elif matrix[i+1][j] == matrix[i][j]:
+			stack.append([i+1, j])
+		elif matrix[i][j-1] == matrix[i][j]:
+			stack.append([i, j-1])
+		elif (matrix[i+1][j-1] + score(sequence[i], sequence[j], i, j)) == matrix[i][j]:
+			stack.append([i+1, j-1])
+			basepairs.append((i,j))	
+		else:
+			if (j > i+1):
+				for k in range(i+1, j):
+					if matrix[i][k]+matrix[k+1][j] == matrix[i][j]:
+						stack.append([i, k])
+						stack.append([k+1, j])
+						break
+	for i in basepairs:
+		k=i[0]
+		j=i[1]
+		dot[k]=-1
+		dot[j]=1
+	return dot
 
-
-
+def score(B1, B2, i, j):
+	if abs(j-i) <= 4:
+		return 0
+	if (B1 == "C" and B2 == "G"):
+		return 3
+	if (B1 == "G" and B2 == "C"):
+		return 3
+	if (B1 == "A" and B2 == "T"):
+		return 2
+	if (B1 == "T" and B2 == "A"):
+		return 2
+	if (B1 == "T" and B2 == "G"):
+		return 2
+	if (B1 == "G" and B2 == "T"):
+		return 2
+	return 0
+		
 
 
 

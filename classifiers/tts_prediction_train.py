@@ -26,6 +26,9 @@ feature_gen.add_function('motif_score', ['motif3.motif','-b'])
 feature_gen.add_function('motif_score', ['motif4.motif', '-b']) 
 feature_gen.add_function('rna_struct', [14, '-up']) # usage of RNA secondary structure feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
 
+feature_gen.add_function('struct_energy', [14, '-up']) # usage of RNA secondary structure energy feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
+
+
 
 my_classifier = lib_classifier.My_Classifier(feature_gen, 'tree', [100,1,'rbf_linear_hammington', 100]) # create a classifier 
 									# 1: feature generator defined above ; 2: classifier type ; 3. param for classifier
