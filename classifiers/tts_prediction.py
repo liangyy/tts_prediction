@@ -1,11 +1,12 @@
-#!/usr/bin/python
+
 
 from Bio import SeqIO
 #import lib_classifier
 import pickle
 import sys
 from lib_classifier import load_instance
-
+from lib_classifier import reverse_complementary
+from lib_classifier import update_reverse_seq
 if sys.argv[1] == '--help':
 	print('./tts_prediction [classifier] [genome] [motif_path]')
 	print('motif path tells where your motif files locate')
@@ -19,17 +20,31 @@ classifier = load_instance(classifier, path)
 window_size = classifier.window_size
 print 'window_size = ', window_size
 print(window_size)
+
 for i in SeqIO.parse(genome, 'fasta'):
 	#print(i)
 	chromsome = i.name
 	seq = str(i.seq)
-	print 'chr = ', chromsome, '  from 1 to', len(seq) - window_size
+	#print 'chr = ', chromsome, '  from 1 to', len(seq) - window_size
+	reverse_seq = seq[0 : window_size]
+	reverse_seq = reverse_complementary(reverse_seq)
 	for scanner in range(len(seq) - window_size):
 		subseq = seq[scanner : scanner + window_size]
+		new_char = seq[scanner + window_size - 1]
 		re = classifier.predict([subseq])
 		#print(re[0])
+		reverse_seq = update_reverse_seq(reverse_seq, new_char)
 		if re[0] == '1': # in training set 1 means TTS and other means non-TTS
-			print scanner
+			word = [str(chromsome), '\t', str(scanner), '\t', str(scanner), '\t'\
+					, 'predicted_tts', '\t', 'NA', '\t', '+']
+			print ''.join(word)
+		re = classifier.predict([reverse_seq])
+		if re[0] == '1': # in training set 1 means TTS and other means non-TTS
+			word = [str(chromsome), '\t', str(scanner), '\t', str(scanner), '\t'\
+					, 'predicted_tts', '\t', 'NA', '\t', '-']
+			print ''.join(word)
+
+
 
 
 
