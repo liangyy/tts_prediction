@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #just for debugging
 import sys
 import lib_classifier
@@ -8,9 +9,9 @@ from lib_classifier import load_instance
 
 
 if sys.argv[1] == '--help':
-	print('python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]')
-	print('if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as')
-	print('classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier')
+	print 'python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]'
+	print 'if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as'
+	print 'classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier'
 	sys.exit()
 
 my_in = sys.argv[1] # training set

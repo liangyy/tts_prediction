@@ -34,3 +34,4 @@ for i in SeqIO.parse(genome, 'fasta'):
 
 
 
+
