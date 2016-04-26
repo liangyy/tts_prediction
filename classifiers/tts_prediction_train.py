@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 #just for debugging
 import sys
 import lib_classifier
@@ -54,7 +54,7 @@ my_classifier.train(raw_data, labels) # training
 my_classifier.feature_to_csv(raw_data, labels, 'train.csv')
 
 (raw_data_test, labels_test) = data_read(my_test) # read test set from file
-my_classifier.feature_to_csv(raw_data, labels_test, 'test.csv')
+my_classifier.feature_to_csv(raw_data_test, labels_test, 'test.csv')
 re = my_classifier.predict(raw_data_test) # predict
 #print(raw_data_test)
 accuracy(re, labels_test) # generate a report for prediction
