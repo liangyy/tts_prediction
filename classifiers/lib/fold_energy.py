@@ -174,7 +174,7 @@ def helix_energy(helix, seqList):
 			energy = energy + 4.0 * helices_energy[firstPair][secondPair]
 		except:
 			energy = float("inf")
-			print "Invalid Structure!"
+			print "Invalid Structure helices_energy not found!"
 
 		##print energy
 
@@ -217,7 +217,7 @@ def hairpin_energy(hairpin):
 	if number < 3:
 		# Assign infinite energy to the hairpinEnergy and because the entire sequence structure is not valid
 		hairpinEnergy = hairpinEnergy + float("inf")
-		print "Invalid Structure!"
+		print "Invalid Structure hairpin loop < 3!"
 		return hairpinEnergy
 
 	# Special cases
@@ -258,7 +258,7 @@ def hairpin_energy(hairpin):
 		hairpinEnergy = hairpinEnergy + terminal_mismatch[hairpin[2]][hairpin[1][0]][hairpin[1][1]]
 	except:
 		hairpinEnergy = float("inf")
-		print "Invalid!"
+		print "Invalid terminal_mismatch not found!"
 
 	# If all C loops
 	# Add all c loops penalty to hairpinEnergy
