@@ -20,7 +20,7 @@ if len(sys.argv) == 1:
 	print('for example:')
 	print('[training_set]: training.data')
 	print('[test_set]: test.data')
-	print('[motif_path]: ./motifMatrices')
+	print('[motif_path]: ./motifs')
 	print('[save_or_not]: save')
 	print('[save_name_if_save]: XXX')
 	print
