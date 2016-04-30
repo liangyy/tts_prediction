@@ -273,14 +273,14 @@ class Feature_Generation_Functions_Lib(object):
 		width = param[0]
 		mode = param[1]
 		if mode == 'local':
-			return fold(seq)
+			return fold(seq, 1)
 		mid = len(seq) / 2
 		up_seq = seq[mid - width : mid]
 		down_seq = seq[mid : mid + width]
 		all_seq = seq[mid - width : mid + width]
-		up_re = fold(up_seq)
-		down_re = fold(down_seq)
-		all_re = fold(all_seq)
+		up_re = fold(up_seq, 1)
+		down_re = fold(down_seq, 1)
+		all_re = fold(all_seq, 1)
 		if mode == '-up':
 			return up_re
 		# Reference:
@@ -352,12 +352,14 @@ class Feature_Generation_Functions_Lib(object):
 		width = param[0]
 		mode = param[1]
 		mid = len(seq) / 2
-		up_seq = seq[mid - width : mid]
-		down_seq = seq[mid : mid + width]
-		all_seq = seq[mid - width : mid + width]
-		up_dot = fold(up_seq)
-		down_dot = fold(down_seq)
-		all_dot = fold(all_seq)
+		up_seq = re.sub('T', 'U', seq[mid - width : mid])
+		down_seq = re.sub('T', 'U', seq[mid : mid + width])
+		all_seq = re.sub('T', 'U', seq[mid - width : mid + width])
+		# print(fold(up_seq, 2))
+		up_dot = ''.join(fold(up_seq, 2))
+		down_dot = ''.join(fold(down_seq, 2))
+		all_dot = ''.join(fold(all_seq, 2))
+		# print(up_dot, up_seq)
 		up_re = fold_energy.energy(up_dot, up_seq)
 		down_re = fold_energy.energy(down_dot, down_seq)
 		all_re = fold_energy.energy(all_dot, all_seq)
@@ -614,7 +616,7 @@ def load_instance(save_name, path):
 	my_classifier.path = path
 	return my_classifier
 
-def fold(sequence):
+def fold(sequence, mode):
 	length = len(sequence)
 	matrix = state = [[[] for _ in range(length)] for _ in range(length)]
 	# Initialization
@@ -643,7 +645,10 @@ def fold(sequence):
 	dot=[]
 	basepairs=[]
 	for i in xrange(length):
-		dot.append(0)
+		if mode == 1:
+			dot.append(0)
+		elif mode == 2:
+			dot.append('.')
 	while not stack==[]:
 		pair = stack.pop()
 		i = pair[0]
@@ -664,12 +669,20 @@ def fold(sequence):
 						stack.append([i, k])
 						stack.append([k+1, j])
 						break
-	for i in basepairs:
-		k=i[0]
-		j=i[1]
-		dot[k]=-1
-		dot[j]=1
-	return dot
+	if mode == 1:
+		for i in basepairs:
+			k=i[0]
+			j=i[1]
+			dot[k]=-1
+			dot[j]=1
+		return dot
+	elif mode == 2:
+		for i in basepairs:
+			k=i[0]
+			j=i[1]
+			dot[k]='('
+			dot[j]=')'
+		return dot
 
 def score(B1, B2, i, j):
 	if abs(j-i) <= 4:
