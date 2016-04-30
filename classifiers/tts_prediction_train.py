@@ -6,6 +6,26 @@ from lib_classifier import accuracy
 from lib_classifier import save_instance
 from lib_classifier import load_instance
 
+if len(sys.argv) == 1:
+	print
+	print('Program for discovering TTSs in Maize Genome')
+	print('tts_prediction_train is for training the model, please use tts_prediction for predicting the sites')
+	print
+	print('USAGE:')
+	print('python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]')
+	print
+	print('if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as')
+	print('classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier')
+	print
+	print('for example:')
+	print('[training_set]: training.data')
+	print('[test_set]: test.data')
+	print('[motif_path]: ./motifMatrices')
+	print('[save_or_not]: save')
+	print('[save_name_if_save]: XXX')
+	print
+	sys.exit()
+
 
 if sys.argv[1] == '--help':
 	print 'python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]'
@@ -28,6 +48,62 @@ feature_gen.add_function('motif_score', ['motif1.motif', '-b']) # param is [moti
 feature_gen.add_function('motif_score', ['motif2.motif', '-b']) 
 feature_gen.add_function('motif_score', ['motif3.motif','-b']) 
 feature_gen.add_function('motif_score', ['motif4.motif', '-b']) 
+
+
+
+
+
+#43 motifs#######
+feature_gen.add_function('motif_score', ['dreme 1st AYAYA.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 2nd AAWWAA.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 3rd KTTMA.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 4th AGCAAY.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 5th GTAATW.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 6th CATD.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 7th CAAWCA.txt', '-b'])
+feature_gen.add_function('motif_score', ['dreme 8th GCAGY.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 5 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 5 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 5 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 5 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 5 5th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 6 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 6 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 6 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 6 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 6 5th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 7 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 7 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 7 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 7 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 7 5th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 8 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 8 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 8 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 8 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 8 5th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 9 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 9 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 9 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 9 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 9 5th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 10 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 10 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 10 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 10 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w 10 5th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w auto 1st.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w auto 2nd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w auto 3rd.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w auto 4th.txt', '-b'])
+feature_gen.add_function('motif_score', ['meme -w auto 5th.txt', '-b'])
+###########
+
+
+
+
+
+
 feature_gen.add_function('rna_struct', [14, '-up']) # usage of RNA secondary structure feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
 feature_gen.add_function('motif_struct_pair', ['meme_probMatrix.txt', 20]) # usage of motif score feature. 
 feature_gen.add_function('motif_struct_pair', ['motif1.motif', 20])
