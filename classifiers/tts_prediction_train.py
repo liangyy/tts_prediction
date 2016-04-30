@@ -28,9 +28,23 @@ if len(sys.argv) == 1:
 
 
 if sys.argv[1] == '--help':
-	print 'python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]'
-	print 'if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as'
-	print 'classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier'
+	print
+	print('Program for discovering TTSs in Maize Genome')
+	print('tts_prediction_train is for training the model, please use tts_prediction for predicting the sites')
+	print
+	print('USAGE:')
+	print('python tts_prediction_train.py [training_set] [test_set] [motif_path] [save_or_not] [save_name_if_save]')
+	print
+	print('if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as')
+	print('classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier')
+	print
+	print('for example:')
+	print('[training_set]: training.data')
+	print('[test_set]: test.data')
+	print('[motif_path]: ./motifs')
+	print('[save_or_not]: save')
+	print('[save_name_if_save]: XXX')
+	print
 	sys.exit()
 
 my_in = sys.argv[1] # training set

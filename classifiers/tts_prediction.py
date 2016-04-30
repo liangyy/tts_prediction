@@ -7,9 +7,36 @@ import sys
 from lib_classifier import load_instance
 from lib_classifier import reverse_complementary
 from lib_classifier import update_reverse_seq
+
+if len(sys.argv) == 1:
+	print
+	print('Program for discovering TTSs in Maize Genome')
+	print('tts_prediction is for predicting the sites in a input genome, please use tts_prediction_train to train the model')
+	print
+	print('USAGE:')
+	print('python tts_prediction.py [classifier] [genome] [motif_path]')
+	print
+	print('for example:')
+	print('[classifier]: test_classifier')
+	print('[genome]: ./genome/test_genome.fa')
+	print('[motif_path]: ./motifs')
+	print
+	sys.exit()
+
+
 if sys.argv[1] == '--help':
-	print('./tts_prediction [classifier] [genome] [motif_path]')
-	print('motif path tells where your motif files locate')
+	print
+	print('Program for discovering TTSs in Maize Genome')
+	print('tts_prediction is for predicting the sites in a input genome, please use tts_prediction_train to train the model')
+	print
+	print('USAGE:')
+	print('python tts_prediction.py [classifier] [genome] [motif_path]')
+	print
+	print('for example:')
+	print('[classifier]: test_classifier')
+	print('[genome]: ./genome/test_genome.fa')
+	print('[motif_path]: ./motifs')
+	print
 	sys.exit()
 
 classifier = sys.argv[1]
