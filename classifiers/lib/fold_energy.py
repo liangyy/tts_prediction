@@ -258,7 +258,7 @@ def hairpin_energy(hairpin):
 		hairpinEnergy = hairpinEnergy + terminal_mismatch[hairpin[2]][hairpin[1][0]][hairpin[1][1]]
 	except:
 		hairpinEnergy = float("inf")
-		print "Invalid terminal_mismatch not found!"
+		print "Invalid terminal_mismatch not found!", hairpin[2], hairpin[1][0], hairpin[1][1]
 
 	# If all C loops
 	# Add all c loops penalty to hairpinEnergy
