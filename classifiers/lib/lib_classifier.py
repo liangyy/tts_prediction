@@ -29,7 +29,8 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import pickle
 import fold_energy
-
+from sklearn import metrics
+from sklearn import cross_validation
 class My_Classifier:
 
 	def __init__(self, feature_generator, name, param, path):
@@ -66,6 +67,13 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		self.classifier_param.append(feature_index)
 		self.set_up_param()
 		self.Classifier.fit(design_matrix, labels)
+
+	def cv(self, raw_data, labels, fold):
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		self.classifier_param.append(feature_name)
+		self.classifier_param.append(feature_index)
+		self.set_up_param()
+		return cross_validation.cross_val_score(self.Classifier, design_matrix, labels, cv = fold, scoring='accuracy')
 
 	def convert_data_to_feature(self, raw_data):
 		design_matrix = []
@@ -577,7 +585,7 @@ def data_read(mf):
 	f = file(mf).read().splitlines()
 	for line in f:
 		line = line.split(' ')
-		labels.append(line[0])
+		labels.append(int(line[0]))
 		raw_data.append(line[1])
 	return (raw_data, labels)
 

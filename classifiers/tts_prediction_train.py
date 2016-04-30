@@ -111,7 +111,7 @@ feature_gen.add_function('motif_score', ['meme -w auto 4th.txt', '-b'])
 feature_gen.add_function('motif_score', ['meme -w auto 5th.txt', '-b'])
 
 # RNA secondary structure
-feature_gen.add_function('rna_struct', [14, '-up']) # usage of RNA secondary structure feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
+feature_gen.add_function('rna_struct', [14, '']) # usage of RNA secondary structure feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
 
 # Motif Score Summarized by Structure
 feature_gen.add_function('motif_struct_pair', ['meme_probMatrix.txt', 20]) # usage of motif score feature. 
@@ -121,7 +121,7 @@ feature_gen.add_function('motif_struct_pair', ['motif4.motif', 20])
 feature_gen.add_function('motif_struct_pair', ['motif3.motif', 20])
 
 # RNA Folding Energy
-feature_gen.add_function('struct_energy', [14, '-up']) # usage of RNA secondary structure energy feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
+feature_gen.add_function('struct_energy', [14, '']) # usage of RNA secondary structure energy feature. NUM means the length of the sequence you want to analyze the structure. more details are in lib_classifier
 #################################################################################
 
 ################################ CLASSIFIER #####################################
@@ -132,6 +132,7 @@ my_classifier = lib_classifier.My_Classifier(feature_gen, 'tree', [100,1,'rbf_li
 
 ################################# TRAINING ######################################
 # Training
+(raw_data, labels) = data_read(my_in) 
 my_classifier.train(raw_data, labels) # load training file
 # my_classifier.feature_to_csv(raw_data, labels, 'train.csv') # output design matrix of training file
 
