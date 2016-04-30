@@ -1,0 +1,6 @@
+pip install biopython
+pip install sklearn
+pip install numpy
+pip install matplotlib
+path=`pwd`
+export PYTHONPATH=$PYTHONPATH:$path/lib/

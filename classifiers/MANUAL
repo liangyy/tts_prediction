@@ -13,7 +13,7 @@ DENPENDENCIES
 To use tts_prediction, you need Python packages: sklearn, numpy, matplotlib and Bio
 
 INSTALL
-> ./setup.sh # it install all dependencies and add tts_prediction into $PATH
+> ./setup.sh # it install all dependencies
 > ./test.sh  # test if setup runs correctly  
 
 USAGE
