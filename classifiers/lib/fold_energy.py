@@ -4,10 +4,10 @@ import math
 
 single_bonds={
 	'A': {'U': -4.42},
-    'C': {'G': -5.53},
-    'U': {'A': -4.42},
-    'G': {'C': -5.53},
-    # 'U': {'G':-4.45},
+	'C': {'G': -5.53},
+	'U': {'A': -4.42},
+	'G': {'C': -5.53},
+	# 'U': {'G':-4.45},
 	# 'G': {'U':-4.45},
 	# 'C': {'U': -0.37},
 	# 'U': {'U': -5.82, 'C': -0.37},
@@ -174,7 +174,7 @@ def helix_energy(helix, seqList):
 			energy = energy + 4.0 * helices_energy[firstPair][secondPair]
 		except:
 			energy = float("inf")
-			print "Invalid Structure!"
+			print "Invalid Structure helices_energy not found!"
 
 		##print energy
 
@@ -217,7 +217,7 @@ def hairpin_energy(hairpin):
 	if number < 3:
 		# Assign infinite energy to the hairpinEnergy and because the entire sequence structure is not valid
 		hairpinEnergy = hairpinEnergy + float("inf")
-		print "Invalid Structure!"
+		print "Invalid Structure hairpin loop < 3!"
 		return hairpinEnergy
 
 	# Special cases
@@ -258,7 +258,7 @@ def hairpin_energy(hairpin):
 		hairpinEnergy = hairpinEnergy + terminal_mismatch[hairpin[2]][hairpin[1][0]][hairpin[1][1]]
 	except:
 		hairpinEnergy = float("inf")
-		print "Invalid!"
+		print "Invalid terminal_mismatch not found!"
 
 	# If all C loops
 	# Add all c loops penalty to hairpinEnergy
