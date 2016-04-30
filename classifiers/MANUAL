@@ -13,14 +13,27 @@ DENPENDENCIES
 To use tts_prediction, you need Python packages: sklearn, numpy, matplotlib and Bio
 
 INSTALL
-> ./setup.sh # it install all dependencies
-> ./test.sh  # test if setup runs correctly  
+> source setup # it install all dependencies and source the Python library used by tts_prediction
+> ./test.sh  # test if tts_prediction runs correctly  
 
 USAGE
-> ./tts_prediction Maize_classifer [your_Maize_genome.fa] > [output] 
+1. Print the usage of tts_predction
+> python tts_prediction.py --help
+
+2. Run an example: use test_classifier as classifier and predict the TTS in test_genome.fa. "motifs/" indicates the path of motifs used by classifier and "output" points to the output file
+> python tts_prediction.py test_classifier genome/test_genome.fa motifs/ > output 
+
 
 EXTENSION
-coming soon
+In this section, we talk about the usage of tts_predction.py
+1. Print the usage of tts_prediction_train
+> python tts_prediction_train.py --help
+
+2. Run an example 
+> python tts_prediction_train.py training_datasets/test_training.txt training_datasets/test_test.txt motifs/ save test_classifier
+
+3. Train a new classifier with customized feature functions
+
 
 
 
