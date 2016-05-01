@@ -605,6 +605,7 @@ class Kernels: #customized kernel
 	def _rbf(self, x, y):
 		delta = x - y
 		re = sum(np.multiply(delta, delta))
+		# print(re, self.param)
 		re = math.exp(- re / 2 / self.param)
 		return re
 
@@ -630,7 +631,7 @@ def accuracy(re, labels):
 	print('2 '),
 	print(accuracy_list[1])
 	print('predict')
-	return accuracy_list[0][0] + accuracy_list[1][1]
+	return (accuracy_list[0][0] + accuracy_list[1][1]) / float(accuracy_list[0][0] + accuracy_list[1][1] + accuracy_list[1][0] + accuracy_list[0][1])
 
 def save_instance(save_name, obj):
 	pickle.dump(obj, open(save_name + '.cls', 'wb'))

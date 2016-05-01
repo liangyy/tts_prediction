@@ -157,11 +157,11 @@ for g in gamma:
 	for i in c:
 		print '------------------------'
 		print 'gamma =', g, '  C =', i
-		my_classifier = lib_classifier.My_Classifier(feature_gen, 'svm', [i, 1, 'final_used_kernel', gamma], path) # create a classifier 								
+		my_classifier = lib_classifier.My_Classifier(feature_gen, 'svm', [i, 1, 'final_used_kernel', g], path) # create a classifier 								
 		my_classifier.train(raw_data, labels)
 		re = my_classifier.predict(raw_test)
 		# score = my_classifier.cv(raw_data, labels, fold)
-		score = accuracy(re, labels_test) 
+		score = [accuracy(re, labels_test)] 
 		print score
 		output.write('\t'.join([str(g), str(i), '\t'.join(map(str, score))]) + '\n')
 info = my_classifier.Classifier.get_params()
