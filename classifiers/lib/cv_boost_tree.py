@@ -150,15 +150,15 @@ feature_gen.add_function('struct_energy', [15, '']) # usage of RNA secondary str
 output = open(output, 'w')
 output.write('No-param\n')
 # gamma = [1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100]
-# c = [1, 5, 10, 20, 50, 100]
+c = [1, 5, 10, 20, 50, 100]
 # for g in gamma:
-# for i in c:
-# 	print '------------------------'
-# 	print 'N_estimators =', i
-my_classifier = lib_classifier.My_Classifier(feature_gen, 'boost', [], path) # create a classifier 								
-score = my_classifier.cv(raw_data, labels, fold)
-print score
-output.write('\t'.join(['No-param', '\t'.join(map(str, score))]) + '\n')
+for i in c:
+	print '------------------------'
+	print 'N_estimators =', i
+	my_classifier = lib_classifier.My_Classifier(feature_gen, 'boost', [i], path) # create a classifier 								
+	score = my_classifier.cv(raw_data, labels, fold)
+	print score
+	output.write('\t'.join([str(i), '\t'.join(map(str, score))]) + '\n')
 info = my_classifier.Classifier.get_params()
 output.write('### classifer info ###\n')
 for i in info.keys():

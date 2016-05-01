@@ -410,6 +410,7 @@ class Set_Param_For_Classifier(object):
 		classifier_object.n_estimators = param_list[0]
 		return ''
 	def boost_param(self, classifier_object, param_list):
+		classifier_object.n_estimators = param_list[0]
 		return ''
 	## def other_classifiers(self, classifier_object, param_list):
 
