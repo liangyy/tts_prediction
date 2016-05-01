@@ -152,7 +152,7 @@ feature_gen.add_function('struct_energy', [15, '']) # usage of RNA secondary str
 output = open(output, 'w')
 output.write('Gamma\tC\n')
 gamma = [1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100]
-c = [0.1, 1, 10, 100]
+c = [100]
 for g in gamma:
 	for i in c:
 		print '------------------------'

@@ -460,22 +460,22 @@ class Kernels: #customized kernel
 		motifstr = np.apply_along_axis(self.hamming, 0, motifstr_x.T, motifstr_y).T
 		#rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y).T
 		#rna = rna.astype(float)
-		print(motifstr)
+		# print(motifstr)
 		re = np.multiply(gc , motif)
 		#re = np.multiply(re, rna)
 		re = np.multiply(re, motifstr)
 
-		f, axarr = plt.subplots(2, 2)
-		axarr[0, 0].pcolor(gc)
-		axarr[0, 0].set_title('gc')
-		axarr[0, 1].pcolor(motif)
-		axarr[0, 1].set_title('motif')
-		axarr[1, 0].pcolor(motifstr)
-		axarr[1, 0].set_title('motifstr')
-		axarr[1, 1].pcolor(re)
-		axarr[1, 1].set_title('re')
-		plt.show()
-		print('re = ' + str(re.shape))
+		# f, axarr = plt.subplots(2, 2)
+		# axarr[0, 0].pcolor(gc)
+		# axarr[0, 0].set_title('gc')
+		# axarr[0, 1].pcolor(motif)
+		# axarr[0, 1].set_title('motif')
+		# axarr[1, 0].pcolor(motifstr)
+		# axarr[1, 0].set_title('motifstr')
+		# axarr[1, 1].pcolor(re)
+		# axarr[1, 1].set_title('re')
+		# plt.show()
+		# print('re = ' + str(re.shape))
 		return re
 
 	def final_used_kernel(self, X, Y):
@@ -495,23 +495,23 @@ class Kernels: #customized kernel
 		re = np.add(re, motifstr)
 		re = np.add(re, energy)
 
-		f, axarr = plt.subplots(2, 3)
-		axarr[0, 0].pcolor(gc)
-		axarr[0, 0].set_title('gc')
-		axarr[0, 1].pcolor(motif)
-		axarr[0, 1].set_title('motif')
-		axarr[1, 0].pcolor(motifstr)
-		axarr[1, 0].set_title('motifstr')
-		axarr[1, 1].pcolor(energy)
-		axarr[1, 1].set_title('energy')
-		axarr[0, 2].pcolor(re)
-		axarr[0, 2].set_title('re')
-		plt.show()
-		# print('re = ' + str(re.shape))
+		# f, axarr = plt.subplots(2, 3)
+		# axarr[0, 0].pcolor(gc)
+		# axarr[0, 0].set_title('gc')
+		# axarr[0, 1].pcolor(motif)
+		# axarr[0, 1].set_title('motif')
+		# axarr[1, 0].pcolor(motifstr)
+		# axarr[1, 0].set_title('motifstr')
+		# axarr[1, 1].pcolor(energy)
+		# axarr[1, 1].set_title('energy')
+		# axarr[0, 2].pcolor(re)
+		# axarr[0, 2].set_title('re')
+		# plt.show()
+		# # print('re = ' + str(re.shape))
 		return re
 	def compute_similarity_based_on_motif_and_struct(self, xsc, ysc, xst, yst):
 		nx = np.shape(xsc)
-		print(nx)
+		# print(nx)
 		nx = nx[0]
 		ny = np.shape(ysc)
 		ny = ny[0]
@@ -570,7 +570,7 @@ class Kernels: #customized kernel
 		for f in range(len(entry_name)):
 			if entry_name[f] == 'motif_struct_pair':
 				cut = (entry_list[f][1] + entry_list[f][0]) / 2
-				print(entry_list[f][1], cut, entry_list[f][0])
+				# print(entry_list[f][1], cut, entry_list[f][0])
 				motifstr_x_st = np.hstack([motifstr_x_st, X[: , entry_list[f][0] : cut]])
 				motifstr_y_st = np.hstack([motifstr_y_st, Y[: , entry_list[f][0] : cut]])
 				motifstr_x_sc = np.hstack([motifstr_x_sc, X[: , cut : entry_list[f][1]]])
