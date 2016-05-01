@@ -425,7 +425,9 @@ class Kernels: #customized kernel
 	def test_kernel(self, X, Y):
 		return np.dot(X, Y.T)
 	def rbf_linear_hammington(self, X, Y):
-		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_x_st] = self.return_feature_by_type(X, Y)
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y\
+		, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_x_st\
+		, energy_x, energy_y] = self.return_feature_by_type(X, Y)
 		#print('gc_x = ' + str(gc_x.shape))
 		#print('gc_y = ' + str(gc_y.shape))
 		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
@@ -441,7 +443,9 @@ class Kernels: #customized kernel
 		return re
 
 	def rbf_linear_structural_score(self, X, Y):# this one works poorly
-		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_x_st] = self.return_feature_by_type(X, Y)
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y\
+		, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st\
+		, energy_x, energy_y] = self.return_feature_by_type(X, Y)
 		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
 		motif = self.linear(motif_x, motif_y)
 		motifstr = np.apply_along_axis(self.hamming, 0, motifstr_x.T, motifstr_y).T
@@ -465,29 +469,36 @@ class Kernels: #customized kernel
 		print('re = ' + str(re.shape))
 		return re
 
-	def rbf_linear_structural_motif_sim(self, X, Y):
-		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st] = self.return_feature_by_type(X, Y)
+	def final_used_kernel(self, X, Y):
+		[gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y\
+		, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st\
+		, energy_x, energy_y] = self.return_feature_by_type(X, Y)
 		gc = np.apply_along_axis(self.rbf, 0, gc_x.T, gc_y).T
 		motif = self.linear(motif_x, motif_y)
 		motifstr = self.compute_similarity_based_on_motif_and_struct(motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st)
+		# motifstr = np.apply_along_axis(self.hamming, 0, motifstr_x.T, motifstr_y).T
 		rna = np.apply_along_axis(self.hamming, 0, rna_x.T, rna_y).T
 		rna = rna.astype(float)
-		print(motifstr)
-		re = np.multiply(gc , motif)
-		re = np.multiply(re, rna)
+		# print(motifstr)
+		energy = np.apply_along_axis(self.hamming, 0, energy_x.T, energy_y).T
+		re = np.add(gc , motif)
+		re = np.add(re, rna)
 		re = np.add(re, motifstr)
+		re = np.add(re, energy)
 
-		f, axarr = plt.subplots(2, 2)
+		f, axarr = plt.subplots(2, 3)
 		axarr[0, 0].pcolor(gc)
 		axarr[0, 0].set_title('gc')
 		axarr[0, 1].pcolor(motif)
 		axarr[0, 1].set_title('motif')
 		axarr[1, 0].pcolor(motifstr)
 		axarr[1, 0].set_title('motifstr')
-		axarr[1, 1].pcolor(re)
-		axarr[1, 1].set_title('re')
+		axarr[1, 1].pcolor(energy)
+		axarr[1, 1].set_title('energy')
+		axarr[0, 2].pcolor(re)
+		axarr[0, 2].set_title('re')
 		plt.show()
-		print('re = ' + str(re.shape))
+		# print('re = ' + str(re.shape))
 		return re
 	def compute_similarity_based_on_motif_and_struct(self, xsc, ysc, xst, yst):
 		nx = np.shape(xsc)
@@ -556,8 +567,16 @@ class Kernels: #customized kernel
 				motifstr_x_sc = np.hstack([motifstr_x_sc, X[: , cut : entry_list[f][1]]])
 				motifstr_y_sc = np.hstack([motifstr_y_sc, Y[: , cut : entry_list[f][1]]])
 
+		energy_x = np.array([]).reshape(nx, 0)
+		energy_y = np.array([]).reshape(ny, 0)
+		for f in range(len(entry_name)):
+			if entry_name[f] == 'struct_energy':
+				energy_x = np.hstack([energy_x, X[: , entry_list[f][0] : entry_list[f][1]]])
+				energy_y = np.hstack([energy_y, Y[: , entry_list[f][0] : entry_list[f][1]]])
 				
-		return [gc_x, gc_y, motif_x, motif_y, rna_x, rna_y, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc, motifstr_x_st, motifstr_y_st]
+		return [gc_x, gc_y, motif_x, motif_y, rna_x, rna_y\
+		, motifstr_x, motifstr_y, motifstr_x_sc, motifstr_y_sc\
+		, motifstr_x_st, motifstr_y_st, energy_x, energy_y]
 
 		
 	def linear(self, x, y):
@@ -568,7 +587,7 @@ class Kernels: #customized kernel
 		re = np.apply_along_axis(self._hamming, 1, y, x)
 		return re
 	def _hamming(self, x, y):
-		return sum(x == y)
+		return math.exp(-sum(abs(x - y)))
 	def rbf(self, x, y):
 		n = np.shape(y)
 		n = n[1]
