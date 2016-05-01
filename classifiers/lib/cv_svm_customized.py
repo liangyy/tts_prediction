@@ -156,7 +156,7 @@ for g in gamma:
 	for i in c:
 		print '------------------------'
 		print 'gamma =', g, '  C =', i
-		my_classifier = lib_classifier.My_Classifier(feature_gen, 'svm', [, 1, 'final_used_kernel', gamma], path) # create a classifier 								
+		my_classifier = lib_classifier.My_Classifier(feature_gen, 'svm', [i, 1, 'final_used_kernel', gamma], path) # create a classifier 								
 		# my_classifier.train(raw_data, labels)
 		score = my_classifier.cv(raw_data, labels, fold)
 		print score
