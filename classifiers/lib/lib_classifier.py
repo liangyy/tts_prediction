@@ -54,6 +54,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		self.window_size = 'unknown'
 		self.kernel_mem = ''
 		self.path = path
+		self.design_matrix = []
 
 	def set_up_param(self):
 		my_cls = Set_Param_For_Classifier()
@@ -62,14 +63,22 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		self.kernel_mem = method(self.Classifier, self.classifier_param)
 	
 	def train(self, raw_data, labels): # raw_data is list of seq
-		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		if len(self.design_matrix) == 0:
+			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+			self.design_matrix = [design_matrix, feature_index, feature_name]
+		else:
+			[design_matrix, feature_index, feature_name] = self.design_matrix
 		self.classifier_param.append(feature_name)
 		self.classifier_param.append(feature_index)
 		self.set_up_param()
 		self.Classifier.fit(design_matrix, labels)
 
 	def cv(self, raw_data, labels, fold):
-		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		if len(self.design_matrix) == 0:
+			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+			self.design_matrix = [design_matrix, feature_index, feature_name]
+		else:
+			[design_matrix, feature_index, feature_name] = self.design_matrix
 		self.classifier_param.append(feature_name)
 		self.classifier_param.append(feature_index)
 		self.set_up_param()
@@ -621,6 +630,7 @@ def accuracy(re, labels):
 	print('2 '),
 	print(accuracy_list[1])
 	print('predict')
+	return accuracy_list[0][0] + accuracy_list[1][1]
 
 def save_instance(save_name, obj):
 	pickle.dump(obj, open(save_name + '.cls', 'wb'))

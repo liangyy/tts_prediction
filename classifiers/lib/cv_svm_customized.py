@@ -12,7 +12,7 @@ if len(sys.argv) == 1:
 	print('tts_prediction_train is for training the model, please use tts_prediction for predicting the sites')
 	print
 	print('USAGE:')
-	print('python cv_svm_poly.py [training_set] [motif_path] [fold] [output_report]')
+	print('python cv_svm_customized.py [training_set] [test_set] [motif_path] [output_report]')
 	# print
 	# print('if you want to save your classifier, type \'save\' at [save_or_not] and fill in the classifier name to save as')
 	# print('classifier is saved in three files: XXX.cls, XXX.features and XXX.classifier')
@@ -30,9 +30,9 @@ if len(sys.argv) == 1:
 raw_data = sys.argv[1] # training set
 # my_test = sys.argv[2] # test set
 # mode = sys.argv[4] # if save classifier 
-
-path = sys.argv[2]
-fold = int(sys.argv[3])
+raw_test = sys.argv[2]
+path = sys.argv[3]
+# fold = int(sys.argv[4])
 output = sys.argv[4]
 ################################# FEATURES ######################################
 # Create a Feature Generator Object
@@ -148,6 +148,7 @@ feature_gen.add_function('struct_energy', [15, '']) # usage of RNA secondary str
 #################################################################################
 # (raw_data, labels) = data_read(raw_data) 
 (raw_data, labels) = data_read(raw_data) 
+(raw_test, labels_test) = data_read(raw_test) 
 output = open(output, 'w')
 output.write('Gamma\tC\n')
 gamma = [1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100]
@@ -157,8 +158,10 @@ for g in gamma:
 		print '------------------------'
 		print 'gamma =', g, '  C =', i
 		my_classifier = lib_classifier.My_Classifier(feature_gen, 'svm', [i, 1, 'final_used_kernel', gamma], path) # create a classifier 								
-		# my_classifier.train(raw_data, labels)
-		score = my_classifier.cv(raw_data, labels, fold)
+		my_classifier.train(raw_data, labels)
+		re = my_classifier.predict(raw_test)
+		# score = my_classifier.cv(raw_data, labels, fold)
+		score = accuracy(re, labels_test) 
 		print score
 		output.write('\t'.join([str(g), str(i), '\t'.join(map(str, score))]) + '\n')
 info = my_classifier.Classifier.get_params()
