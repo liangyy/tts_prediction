@@ -565,7 +565,7 @@ class Kernels: #customized kernel
 
 		motifstr_x_sc = np.array([]).reshape(nx, 0)
 		motifstr_y_sc = np.array([]).reshape(ny, 0)
-		motifstr_x_st = np.array([]).reshape(ny, 0)
+		motifstr_x_st = np.array([]).reshape(nx, 0)
 		motifstr_y_st = np.array([]).reshape(ny, 0)
 		for f in range(len(entry_name)):
 			if entry_name[f] == 'motif_struct_pair':
