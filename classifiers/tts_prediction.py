@@ -1,4 +1,8 @@
+from __future__ import print_function
+import sys
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 from Bio import SeqIO
 #import lib_classifier
@@ -30,7 +34,7 @@ if sys.argv[1] == '--help':
 	print('tts_prediction is for predicting the sites in a input genome, please use tts_prediction_train to train the model')
 	print
 	print('USAGE:')
-	print('python tts_prediction.py [classifier] [genome] [motif_path]')
+	print('python tts_prediction.py [classifier] [genome] [motif_path] [out]')
 	print
 	print('for example:')
 	print('[classifier]: test_classifier')
@@ -45,9 +49,9 @@ path = sys.argv[3]
 classifier = load_instance(classifier, path)
 
 window_size = classifier.window_size
-print 'window_size = ', window_size
-print(window_size)
-
+eprint 'window_size = ', window_size
+eprint(window_size)
+starter = window_size / 2 + 1
 for i in SeqIO.parse(genome, 'fasta'):
 	#print(i)
 	chromsome = i.name
@@ -62,12 +66,12 @@ for i in SeqIO.parse(genome, 'fasta'):
 		#print(re[0])
 		reverse_seq = update_reverse_seq(reverse_seq, new_char)
 		if re[0] == 1: # in training set 1 means TTS and other means non-TTS
-			word = [str(chromsome), '\t', str(scanner), '\t', str(scanner), '\t'\
+			word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
 					, 'predicted_tts', '\t', 'NA', '\t', '+']
 			print ''.join(word)
 		re = classifier.predict([reverse_seq])
 		if re[0] == 1: # in training set 1 means TTS and other means non-TTS
-			word = [str(chromsome), '\t', str(scanner), '\t', str(scanner), '\t'\
+			word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
 					, 'predicted_tts', '\t', 'NA', '\t', '-']
 			print ''.join(word)
 
