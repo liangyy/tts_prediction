@@ -32,8 +32,8 @@ raw_data = sys.argv[1] # training set
 # mode = sys.argv[4] # if save classifier 
 
 path = sys.argv[2]
-fold = int(sys.argv[3])
 output = sys.argv[4]
+save_name = sys.argv[3]
 ################################# FEATURES ######################################
 # Create a Feature Generator Object
 feature_gen = lib_classifier.Feature_Generator() # create feature generator
@@ -164,3 +164,5 @@ output.write('### classifer info ###\n')
 for i in info.keys():
 	output.write('\t'.join([i, str(info[i])]) + '\n')
 output.close()
+
+save_instance(save_name, my_classifier)
