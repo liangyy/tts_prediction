@@ -72,7 +72,7 @@ for i in SeqIO.parse(genome, 'fasta'):
 			eprint(''.join(word))
 			out.write(''.join(word) + '\n')
 		else:
-			eprint(str(scanner + starter) + 'skip +')
+			eprint(str(scanner + starter) + '\tskip\t+')
 		re = classifier.predict([reverse_seq])
 		if re[0] == 1: # in training set 1 means TTS and other means non-TTS
 			word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
@@ -80,7 +80,7 @@ for i in SeqIO.parse(genome, 'fasta'):
 			eprint(''.join(word))
 			out.write(''.join(word) + '\n')
 		else:
-			eprint(str(scanner + starter) + 'skip -')
+			eprint(str(scanner + starter) + '\tskip\t-')
 
 
 
