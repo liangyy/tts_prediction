@@ -65,7 +65,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 	
 	def train(self, raw_data, labels): # raw_data is list of seq
 		if len(self.design_matrix) == 0:
-			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
+			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 			self.design_matrix = [design_matrix, feature_index, feature_name]
 		else:
 			[design_matrix, feature_index, feature_name] = self.design_matrix
@@ -76,7 +76,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 
 	def cv(self, raw_data, labels, fold):
 		if len(self.design_matrix) == 0:
-			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
+			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 			self.design_matrix = [design_matrix, feature_index, feature_name]
 		else:
 			[design_matrix, feature_index, feature_name] = self.design_matrix
@@ -121,7 +121,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		return re
 
 	def visualize(self, raw_data, labels):
-		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 		colors = ['red','green']
 		pca_fit = SparsePCA()
 		tmp = pca_fit.fit_transform(design_matrix)
@@ -130,7 +130,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 	
 
 	def feature_to_csv(self, raw_data, label, output_name):
-		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 		#print(label)
 		label_num = []
 		for i in label:
