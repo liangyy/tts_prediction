@@ -156,7 +156,7 @@ output = open(output, 'w')
 # 	print '------------------------'
 # 	print 'N_estimators =', i
 my_classifier = lib_classifier.My_Classifier(feature_gen, 'tree', [1000], path) # create a classifier 								
-(raw_data, labels) = data_read(raw_data) 
+# (raw_data, labels) = data_read(raw_data) 
 my_classifier.train(raw_data, labels)
 re = my_classifier.predict(raw_data)
 score = accuracy(re, labels)
