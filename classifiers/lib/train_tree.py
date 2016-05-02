@@ -162,6 +162,7 @@ re = my_classifier.predict(raw_data)
 score = accuracy(re, labels)
 	# score = my_classifier.cv(raw_data, labels, fold)
 	# print score
+print 'accuracy =', score
 output.write(' '.join(['training accuracy =', str(score)]))
 info = my_classifier.Classifier.get_params()
 output.write('### classifer info ###\n')
