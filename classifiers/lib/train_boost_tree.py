@@ -34,7 +34,6 @@ raw_data = sys.argv[1] # training set
 path = sys.argv[2]
 output = sys.argv[4]
 save_name = sys.argv[3]
-
 ################################# FEATURES ######################################
 # Create a Feature Generator Object
 feature_gen = lib_classifier.Feature_Generator() # create feature generator
@@ -157,9 +156,13 @@ output = open(output, 'w')
 # 	print '------------------------'
 # 	print 'N_estimators =', i
 my_classifier = lib_classifier.My_Classifier(feature_gen, 'boost', [1000], path) # create a classifier 								
+(raw_data, labels) = data_read(raw_data) 
+my_classifier.train(raw_data, labels)
+re = my_classifier.predict(raw_data)
+score = accuracy(re, labels)
 	# score = my_classifier.cv(raw_data, labels, fold)
 	# print score
-	# output.write('\t'.join([str(i), '\t'.join(map(str, score))]) + '\n')
+output.write(' '.join(['training accuracy =', str(score)]))
 info = my_classifier.Classifier.get_params()
 output.write('### classifer info ###\n')
 for i in info.keys():
