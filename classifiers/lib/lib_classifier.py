@@ -55,6 +55,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		self.kernel_mem = ''
 		self.path = path
 		self.design_matrix = []
+		# self.speed = speed
 
 	def set_up_param(self):
 		my_cls = Set_Param_For_Classifier()
@@ -64,7 +65,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 	
 	def train(self, raw_data, labels): # raw_data is list of seq
 		if len(self.design_matrix) == 0:
-			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
 			self.design_matrix = [design_matrix, feature_index, feature_name]
 		else:
 			[design_matrix, feature_index, feature_name] = self.design_matrix
@@ -75,7 +76,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 
 	def cv(self, raw_data, labels, fold):
 		if len(self.design_matrix) == 0:
-			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+			[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
 			self.design_matrix = [design_matrix, feature_index, feature_name]
 		else:
 			[design_matrix, feature_index, feature_name] = self.design_matrix
@@ -102,14 +103,16 @@ algorithm=\"SAMME\", n_estimators=200)'}
 					sys.exit()
 				else:
 					seq = seq[:delta]
-			seq_feature = self.feature_generator.gen_feature_from_seq(seq)
+			[seq_feature, feature_index, feature_name] = self.feature_generator.gen_feature_from_seq(seq)
 			design_matrix.append(seq_feature)
 		#design_matrix = StandardScaler().fit_transform(design_matrix)
-		[feature_index, feature_name] = self.feature_generator.feature_info(raw_data[0])
+		# [feature_index, feature_name] = self.feature_generator.feature_info(raw_data[0])
 		return [np.array(design_matrix), feature_index, feature_name]
 
 	def predict(self, raw_data):
+		
 		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+
 		#print(len(design_matrix[0]))
 		#print(design_matrix)
 		re = list(self.Classifier.predict(design_matrix))
@@ -118,7 +121,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		return re
 
 	def visualize(self, raw_data, labels):
-		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
 		colors = ['red','green']
 		pca_fit = SparsePCA()
 		tmp = pca_fit.fit_transform(design_matrix)
@@ -127,7 +130,7 @@ algorithm=\"SAMME\", n_estimators=200)'}
 	
 
 	def feature_to_csv(self, raw_data, label, output_name):
-		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
+		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data, '')
 		#print(label)
 		label_num = []
 		for i in label:
@@ -156,30 +159,37 @@ class Feature_Generator:
 
 	def gen_feature_from_seq(self, seq):
 		features = []
+		feature_index = []
+		feature_name = self.list_of_feature_name
+		index = 0
 		funcs = self.list_of_feature_generation_functions
 		for func in funcs:
 			feature = func.run_gen_feature_func(seq, self.path)
+			to = len(feature)
+			feature_index.append([index, index + to])
+			index = index + to
 			features += feature
-		return features
+		self.list_of_feature_index = feature_index
+		return [features, feature_index, feature_name]
 
 	def add_function(self, func_name, func_param):
 		func_cls = Call_Feature_Generation_Function(func_name, func_param, self.path)
 		self.list_of_feature_generation_functions.append(func_cls)
 		self.list_of_feature_name.append(func_name)
 
-	def feature_info(self, seq):
-		feature_index = []
-		feature_name = self.list_of_feature_name
-		funcs = self.list_of_feature_generation_functions
-		index = 0
-		for func in funcs:
-			feature = func.run_gen_feature_func(seq, self.path)
-			to = len(feature)
-			feature_index.append([index, index + to])
-			index = index + to
+	# def feature_info(self, seq):
+	# 	feature_index = []
+	# 	feature_name = self.list_of_feature_name
+	# 	funcs = self.list_of_feature_generation_functions
+	# 	index = 0
+	# 	for func in funcs:
+	# 		feature = func.run_gen_feature_func(seq, self.path)
+	# 		to = len(feature)
+	# 		feature_index.append([index, index + to])
+	# 		index = index + to
 
-		self.list_of_feature_index = feature_index
-		return [feature_index, feature_name]
+	# 	self.list_of_feature_index = feature_index
+	# 	return [feature_index, feature_name]
 
 class Call_Feature_Generation_Function:
 
