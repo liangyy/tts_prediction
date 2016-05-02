@@ -18,7 +18,7 @@ if len(sys.argv) == 1:
 	print('tts_prediction is for predicting the sites in a input genome, please use tts_prediction_train to train the model')
 	print
 	print('USAGE:')
-	print('python tts_prediction.py [classifier] [genome] [motif_path]')
+	print('python tts_prediction.py [classifier] [genome] [motif_path] [out]')
 	print
 	print('for example:')
 	print('[classifier]: test_classifier')
@@ -72,7 +72,7 @@ for i in SeqIO.parse(genome, 'fasta'):
 			eprint(''.join(word))
 			out.write(''.join(word) + '\n')
 		else:
-			eprint(str(scanner + starter) + '\tskip\t+')
+			eprint(str(chromsome) + '\t' + str(scanner + starter) + '\tskip\t+')
 		re = classifier.predict([reverse_seq])
 		if re[0] == 1: # in training set 1 means TTS and other means non-TTS
 			word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
@@ -80,7 +80,7 @@ for i in SeqIO.parse(genome, 'fasta'):
 			eprint(''.join(word))
 			out.write(''.join(word) + '\n')
 		else:
-			eprint(str(scanner + starter) + '\tskip\t-')
+			eprint(str(chromsome) + '\t' + str(scanner + starter) + '\tskip\t-')
 
 
 
