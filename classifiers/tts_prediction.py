@@ -47,9 +47,10 @@ classifier = sys.argv[1]
 genome = sys.argv[2]
 path = sys.argv[3]
 classifier = load_instance(classifier, path)
-
+out = sys.argv[4]
+out = open(out, 'w')
 window_size = classifier.window_size
-eprint 'window_size = ', window_size
+eprint('window_size = ', window_size)
 eprint(window_size)
 starter = window_size / 2 + 1
 for i in SeqIO.parse(genome, 'fasta'):
@@ -68,12 +69,14 @@ for i in SeqIO.parse(genome, 'fasta'):
 		if re[0] == 1: # in training set 1 means TTS and other means non-TTS
 			word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
 					, 'predicted_tts', '\t', 'NA', '\t', '+']
-			print ''.join(word)
+			eprint(''.join(word))
+			out.write(''.join(word))
 		re = classifier.predict([reverse_seq])
 		if re[0] == 1: # in training set 1 means TTS and other means non-TTS
 			word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
 					, 'predicted_tts', '\t', 'NA', '\t', '-']
-			print ''.join(word)
+			eprint(''.join(word))
+			out.write(''.join(word))
 
 
 
