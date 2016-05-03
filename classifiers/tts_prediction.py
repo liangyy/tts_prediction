@@ -11,7 +11,7 @@ import sys
 from lib_classifier import load_instance
 from lib_classifier import reverse_complementary
 from lib_classifier import update_reverse_seq
-
+import re
 if len(sys.argv) == 1:
 	print
 	print('Program for discovering TTSs in Maize Genome')
@@ -62,6 +62,8 @@ for i in SeqIO.parse(genome, 'fasta'):
 	reverse_seq = reverse_complementary(reverse_seq)
 	for scanner in range(len(seq) - window_size):
 		subseq = seq[scanner : scanner + window_size]
+		if 'N' in subseq:
+			continue
 		new_char = seq[scanner + window_size - 1]
 		re = classifier.predict([subseq])
 		#print(re[0])

@@ -752,7 +752,7 @@ def score(B1, B2, i, j):
 		
 def reverse_complementary(reverse_seq):
 	seq = list(reverse_seq)
-	lib = {'A' : 'T', 'T' : 'A', 'G' : 'C', 'C' : 'G'}
+	lib = {'A' : 'T', 'T' : 'A', 'G' : 'C', 'C' : 'G', 'N' : 'N'}
 	re = []
 	for s in reversed(seq):
 		re.append(lib[s])
@@ -760,7 +760,7 @@ def reverse_complementary(reverse_seq):
 
 def update_reverse_seq(reverse_seq, new_char):
 	seq = list(reverse_seq)
-	lib = {'A' : 'T', 'T' : 'A', 'G' : 'C', 'C' : 'G'}
+	lib = {'A' : 'T', 'T' : 'A', 'G' : 'C', 'C' : 'G', 'N' : 'N'}
 	seq.pop()
 	seq.insert(0, lib[new_char])
 	return ''.join(seq)
