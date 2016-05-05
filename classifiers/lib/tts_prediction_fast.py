@@ -29,6 +29,11 @@ def report(subseq, new_char, reverse_seq, chromsome, scanner, starter, flag):
 		eprint(str(chromsome) + '\t' + str(scanner + starter) + '\tskip\t-')
 	return reverse_seq
 
+def noreport(new_char, reverse_seq):
+	reverse_seq = update_reverse_seq(reverse_seq, new_char)
+	return reverse_seq
+
+
 from Bio import SeqIO
 #import lib_classifier
 import pickle
@@ -43,12 +48,13 @@ if len(sys.argv) == 1:
 	print('tts_prediction is for predicting the sites in a input genome, please use tts_prediction_train to train the model')
 	print
 	print('USAGE:')
-	print('python tts_prediction.py [classifier] [genome] [motif_path] [out]')
+	print('python tts_prediction.py [classifier] [genome] [motif_path] [jump_size] [out]')
 	print
 	print('for example:')
 	print('[classifier]: test_classifier')
 	print('[genome]: ./genome/test_genome.fa')
 	print('[motif_path]: ./motifs')
+	print('[jump_size]: 100')
 	print
 	sys.exit()
 
@@ -59,12 +65,13 @@ if sys.argv[1] == '--help':
 	print('tts_prediction is for predicting the sites in a input genome, please use tts_prediction_train to train the model')
 	print
 	print('USAGE:')
-	print('python tts_prediction.py [classifier] [genome] [motif_path] [out]')
+	print('python tts_prediction.py [classifier] [genome] [motif_path] [jump_size] [out]')
 	print
 	print('for example:')
 	print('[classifier]: test_classifier')
 	print('[genome]: ./genome/test_genome.fa')
 	print('[motif_path]: ./motifs')
+	print('[jump_size]: 100')
 	print
 	sys.exit()
 
@@ -72,7 +79,8 @@ classifier = sys.argv[1]
 genome = sys.argv[2]
 path = sys.argv[3]
 classifier = load_instance(classifier, path)
-out = sys.argv[4]
+jump_size = int(sys.argv[4])
+out = sys.argv[5]
 out = open(out, 'w')
 window_size = classifier.window_size
 eprint('window_size = ', window_size)
@@ -84,6 +92,7 @@ f = open(genome, 'r')
 f = f.readlines()
 start_flag = 0
 seq = ''
+jump_counter = 0
 for l in f:
 	# f.pop()
 	# print(l)
@@ -112,7 +121,12 @@ for l in f:
 					subseq = subseq[1:] + e
 					scanner += 1
 					# print('e = ',e)
-					reverse_seq = report(subseq, e, reverse_seq, chromsome, scanner, starter, '')
+					jump_counter += 1
+					if jump_counter == jump_size:
+						reverse_seq = report(subseq, e, reverse_seq, chromsome, scanner, starter, '')
+						jump_counter = 0
+					else:
+						reverse_seq = noreport(e, reverse_seq)
 				# f.insert(0, tmp)
 				# print(f[0])
 				continue
@@ -121,8 +135,13 @@ for l in f:
 			for e in chars:
 				subseq = subseq[1:] + e
 				scanner += 1
-				# print('e = ',e)
-				reverse_seq = report(subseq, e, reverse_seq, chromsome, scanner, starter, '')
+				jump_counter += 1
+				if jump_counter == jump_size:
+					reverse_seq = report(subseq, e, reverse_seq, chromsome, scanner, starter, '')
+					jump_counter = 0
+				else:
+					reverse_seq = noreport(e, reverse_seq)
+				
 
 # print(f.keys())
 # for key in f.keys():
