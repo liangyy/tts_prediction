@@ -9,7 +9,7 @@ fi
 rm tmp.out
 echo "##########################################################"
 echo Predicting TTS on test_genome.fa
-python tts_prediction.py test_classifier genome/test_genome.fa motifs/ > tmp.out
+python tts_prediction.py test_classifier genome/test_genome.fa motifs/ 1 tmp.out
 if [ $? -eq 0 ]; then
     echo tts_prediction.py SUCCEEDS!!
 else
