@@ -110,14 +110,17 @@ algorithm=\"SAMME\", n_estimators=200)'}
 		return [np.array(design_matrix), feature_index, feature_name]
 
 	def predict(self, raw_data):
-		
+		if len(raw_data) == 0 and 'N' in raw_data[0]:
+			return [2]
 		[design_matrix, feature_index, feature_name] = self.convert_data_to_feature(raw_data)
 
 		#print(len(design_matrix[0]))
 		#print(design_matrix)
 		re = list(self.Classifier.predict(design_matrix))
 		#print(self.Classifier.predict(design_matrix))
-		#print(len(re))
+		# print(len(re))
+		# print(re)
+		# print(['2'])
 		return re
 
 	def visualize(self, raw_data, labels):
@@ -164,6 +167,7 @@ class Feature_Generator:
 		index = 0
 		funcs = self.list_of_feature_generation_functions
 		for func in funcs:
+			# print(func)
 			feature = func.run_gen_feature_func(seq, self.path)
 			to = len(feature)
 			feature_index.append([index, index + to])
@@ -202,6 +206,7 @@ class Call_Feature_Generation_Function:
 		param = self.func_param
 		self.path = path
 		func_name = self.func_name
+		# print(func_name)
 		my_cls = Feature_Generation_Functions_Lib(self.path)
 		method = getattr(my_cls, func_name)
 		return method(seq, param)
