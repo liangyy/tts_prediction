@@ -97,6 +97,10 @@ for l in f:
 	# f.pop()
 	# print(l)
 	l = re.sub('\n', '', l)
+	if len(l) == 0:
+		continue
+	 # else:
+		# print(l)
 	if l[0] == '>':
 		chromsome = l.split(':')
 		chromsome = chromsome[0][1:]
