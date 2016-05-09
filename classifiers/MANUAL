@@ -38,7 +38,13 @@ for example:
 
 EXTENSION
 In this section, we talk about the usage of training scripts.
-1. The list of training scripts at lib/:
+1. The input for training is two-column file: [label]SPACE[sequence]
+Here label = 1 indicates TTS, and 2 indicates negative ones.
+To convert FASTA into the input format compatible for our scripts, check lib/fasta2data.py
+Additionally, we cannot accept "N" in training sequences (in genome, they will be ignore automatically), check lib/foo.py to clean you data (the input should be in our format already). 
+
+
+2. The list of training scripts at lib/:
 	train_boost_tree.py 		# train a Boost-of-Trees classifier
 	train_svm_rbf.py   			# train a SVM wih RBF kernel
 	train_svm_linear.py      	# train a SVM with Linear kernel

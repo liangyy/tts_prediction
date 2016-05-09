@@ -1,6 +1,6 @@
 import sys
 import re
-if sys.argv[1] == '--help':
+if len(sys.argv) == 1 or sys.argv[1] == '--help':
 	print 'foo.py [dirty_input]'
 	sys.exit()
 
