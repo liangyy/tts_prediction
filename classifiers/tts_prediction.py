@@ -13,7 +13,7 @@ def report(subseq, new_char, reverse_seq, chromsome, scanner, starter, flag):
 	if flag == '':
 		reverse_seq = update_reverse_seq(reverse_seq, new_char)
 	if re[0] == 1: # in training set 1 means TTS and other means non-TTS
-		word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
+		word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter + 1), '\t'\
 				, 'predicted_tts', '\t', 'NA', '\t', '+']
 		eprint(''.join(word))
 		out.write(''.join(word) + '\n')
@@ -21,7 +21,7 @@ def report(subseq, new_char, reverse_seq, chromsome, scanner, starter, flag):
 		eprint(str(chromsome) + '\t' + str(scanner + starter) + '\tskip\t+')
 	re = classifier.predict([reverse_seq])
 	if re[0] == 1: # in training set 1 means TTS and other means non-TTS
-		word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter), '\t'\
+		word = [str(chromsome), '\t', str(scanner + starter), '\t', str(scanner + starter + 1), '\t'\
 				, 'predicted_tts', '\t', 'NA', '\t', '-']
 		eprint(''.join(word))
 		out.write(''.join(word) + '\n')
